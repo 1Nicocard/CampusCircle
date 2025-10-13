@@ -1,8 +1,12 @@
-export default function App() {
+import Navbar from "./Components/Nav"; // ✅ Import SIEMPRE va arriba
+
+function App() { // ✅ Definición de la función
   return (
-    <div className="min-h-screen bg-blue-500 text-white flex items-center justify-center">
-      <h1 className="text-4xl font-bold">Tailwind está funcionando 🎉</h1>
+    <div>
+      <Navbar />
     </div>
   );
 }
+
+export default App; // ✅ Export SIEMPRE va al final, fuera de la función
 
