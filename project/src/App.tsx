@@ -1,12 +1,19 @@
-import Navbar from "./Components/Nav"; // ✅ Import SIEMPRE va arriba
+import Navbar from "./Components/Nav";
+import Footer from "./Components/Footer";
 
-function App() { // ✅ Definición de la función
+export default function App() {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* Navbar */}
       <Navbar />
+
+      {/* Contenido principal (ocupa todo el espacio libre) */}
+      <main className="flex-grow">
+        {/* Aquí va tu contenido */}
+      </main>
+
+      {/* Footer fijo al final */}
+      <Footer />
     </div>
   );
 }
-
-export default App; // ✅ Export SIEMPRE va al final, fuera de la función
-
