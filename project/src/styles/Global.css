@@ -1,0 +1,21 @@
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@700&display=swap");
+
+body {
+  font-family: "Satoshi", sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=ABeeZee&display=swap');
+
+.font-ABeeZee {
+  font-family: 'ABeeZee', sans-serif;
+  font-weight: 400;
+}
+
+
+
+@import url('https://fonts.googleapis.com/css2?family=Sarala&display=swap');
+
+.font-sarala {
+  font-family: 'Sarala', sans-serif;
+  font-weight: 400;
+}
