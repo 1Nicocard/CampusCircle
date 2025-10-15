@@ -13,11 +13,11 @@ type ButtonVariant =
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
-  count?: number; // para botones tipo reaction
-  options?: string[]; // para el select
+  count?: number; 
+  options?: string[]; 
 }
 
-const baseFont = "font-[Satoshi]"; // 👈 aplicamos la fuente base
+const baseFont = "font-[Satoshi]";
 
 const variantClasses: Record<ButtonVariant, string> = {
   navigation:
