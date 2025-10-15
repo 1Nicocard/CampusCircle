@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Heart, Globe } from "lucide-react";
+import { Heart, MessageCircle, Globe } from "lucide-react";
 
 type ButtonVariant =
   | "navigation"
@@ -11,31 +11,61 @@ type ButtonVariant =
   | "reaction"
   | "social";
 
+type ReactionType = "like" | "comment";
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
-  count?: number; 
-  options?: string[]; 
+  count?: number;
+  options?: string[];
+  reactionType?: ReactionType; // 👈 like o comment
 }
 
 const baseFont = "font-[Satoshi]";
 
 const variantClasses: Record<ButtonVariant, string> = {
-  navigation:
-    `${baseFont} bg-gradient-to-r from-blue-300 to-blue-500 text-white font-semibold px-6 py-2 rounded-full hover:from-blue-400 hover:to-blue-600 transition-all duration-300 shadow-sm text-sm sm:text-base`,
-  hero:
-    `${baseFont} bg-blue-100 text-blue-700 font-semibold px-6 py-2 rounded-full hover:bg-gradient-to-r hover:from-emerald-300 hover:via-sky-300 hover:to-purple-300 hover:text-white transition-all duration-300 text-sm sm:text-base`,
-  important:
-    `${baseFont} bg-blue-400 text-white font-semibold px-6 py-2 rounded-full hover:bg-blue-600 transition-all duration-300 text-sm sm:text-base`,
-  secondary:
-    `${baseFont} border border-blue-400 text-blue-500 font-semibold px-6 py-2 rounded-full hover:bg-blue-50 transition-all duration-300 text-sm sm:text-base`,
-  select:
-    `${baseFont} relative border border-gray-300 text-gray-600 font-medium px-6 py-2 rounded-full flex items-center justify-between hover:border-gray-400 transition-all duration-300 text-sm sm:text-base`,
-  label:
-    `${baseFont} bg-gray-100 text-gray-400 font-medium px-6 py-2 rounded-full cursor-not-allowed text-sm sm:text-base`,
-  reaction:
-    `${baseFont} flex items-center gap-2 bg-gray-100 text-gray-400 font-medium px-4 py-2 rounded-full transition-all duration-300 text-sm sm:text-base hover:text-blue-400`,
-  social:
-    `${baseFont} flex items-center gap-2 bg-gray-100 text-gray-500 font-medium px-4 py-2 rounded-full transition-all duration-300 text-sm sm:text-base hover:bg-blue-500 hover:text-white`,
+  navigation: `${baseFont} bg-gradient-to-r from-blue-300 to-blue-500 text-white font-semibold 
+    px-10 py-2.5 rounded-full 
+    hover:from-blue-400 hover:to-blue-600 
+    transition-all duration-300 shadow-sm 
+    text-lg sm:text-xl md:text-2xl`,
+
+  hero: `${baseFont} border border-blue-200 text-blue-500 font-semibold 
+    px-10 py-2.5 rounded-full 
+    hover:bg-gradient-to-r hover:from-emerald-300 hover:via-sky-300 hover:to-purple-300 hover:text-white 
+    transition-all duration-300 
+    text-lg sm:text-xl md:text-2xl`,
+
+  important: `${baseFont} bg-blue-400 text-white font-semibold 
+    px-10 py-2.5 rounded-full 
+    hover:bg-blue-600 
+    transition-all duration-300 
+    text-lg sm:text-xl md:text-2xl`,
+
+  secondary: `${baseFont} border border-blue-400 text-blue-500 font-semibold 
+    px-10 py-2.5 rounded-full 
+    hover:bg-blue-50 
+    transition-all duration-300 
+    text-lg sm:text-xl md:text-2xl`,
+
+  select: `${baseFont} relative border border-gray-300 text-gray-600 font-medium 
+    px-10 py-2.5 rounded-full flex items-center justify-between 
+    hover:border-gray-400 
+    transition-all duration-300 
+    text-lg sm:text-xl md:text-2xl`,
+
+  label: `${baseFont} bg-gray-100 text-gray-400 font-medium 
+    px-10 py-2.5 rounded-full cursor-not-allowed 
+    text-lg sm:text-xl md:text-2xl`,
+
+  reaction: `${baseFont} flex items-center gap-3 bg-gray-100 text-gray-400 font-medium 
+    px-8 py-2.5 rounded-full 
+    transition-all duration-300 
+    text-lg sm:text-xl md:text-2xl hover:text-blue-400`,
+
+  social: `${baseFont} flex items-center gap-3 bg-gray-100 text-gray-500 font-medium 
+    px-8 py-2.5 rounded-full 
+    transition-all duration-300 
+    text-lg sm:text-xl md:text-2xl hover:bg-blue-500 hover:text-white`,
 };
 
 export const Button: React.FC<ButtonProps> = ({
@@ -43,27 +73,24 @@ export const Button: React.FC<ButtonProps> = ({
   count,
   options,
   children,
+  reactionType = "like", // 👈 por defecto es like
   ...props
 }) => {
   const [liked, setLiked] = useState(false);
   const [active, setActive] = useState(false);
-  const [likeCount, setLikeCount] = useState(count || 19);
+  const [likeCount, setLikeCount] = useState(count || 0);
 
   const [selected, setSelected] = useState(options ? options[0] : "Select");
   const [open, setOpen] = useState(false);
 
+  // --- Reacción: Like o Comentario ---
   const handleReaction = () => {
-    setLiked(!liked);
-    setLikeCount(liked ? likeCount - 1 : likeCount + 1);
-  };
-
-  const handleSocial = () => {
-    setActive(!active);
-  };
-
-  const handleSelect = (option: string) => {
-    setSelected(option);
-    setOpen(false);
+    if (reactionType === "like") {
+      setLiked(!liked);
+      setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+    } else if (reactionType === "comment") {
+      setLikeCount(likeCount + 1);
+    }
   };
 
   // --- Reaction Button ---
@@ -73,14 +100,18 @@ export const Button: React.FC<ButtonProps> = ({
         {...props}
         onClick={handleReaction}
         className={`${variantClasses.reaction} ${
-          liked ? "bg-blue-50 text-blue-500" : ""
+          liked && reactionType === "like" ? "bg-blue-50 text-blue-500" : ""
         }`}
       >
-        <Heart
-          size={16}
-          fill={liked ? "#3B82F6" : "none"}
-          stroke={liked ? "#3B82F6" : "currentColor"}
-        />
+        {reactionType === "like" ? (
+          <Heart
+            size={20}
+            fill={liked ? "#3B82F6" : "none"}
+            stroke={liked ? "#3B82F6" : "currentColor"}
+          />
+        ) : (
+          <MessageCircle size={20} />
+        )}
         <span>{likeCount}</span>
       </button>
     );
@@ -91,13 +122,13 @@ export const Button: React.FC<ButtonProps> = ({
     return (
       <button
         {...props}
-        onClick={handleSocial}
+        onClick={() => setActive(!active)}
         className={`${variantClasses.social} ${
           active ? "bg-blue-50 text-blue-500" : ""
         }`}
       >
         <Globe
-          size={16}
+          size={20}
           className={`transition-colors duration-300 ${
             active ? "text-blue-500" : ""
           }`}
@@ -134,7 +165,10 @@ export const Button: React.FC<ButtonProps> = ({
             {options.map((option) => (
               <li
                 key={option}
-                onClick={() => handleSelect(option)}
+                onClick={() => {
+                  setSelected(option);
+                  setOpen(false);
+                }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 cursor-pointer rounded-lg"
               >
                 {option}
