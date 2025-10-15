@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "user": {
+      "name": "Maya Villalba Gómez",
+      "avatar": "/src/Assets/Foto user.jpg",
+      "role": "Graphic design student",
+      "semester": "1st semester"
+    },
+    "date": "2025-09-08",
+    "category": "Math",
+    "title": "When ‘x’ Meets Creativity",
+    "content": "Today in Algebra I realized how much math is connected to design. At first, equations felt abstract, but when the professor explained how proportions and balance in algebra can be applied to layouts, it made so much sense. I never thought solving for ‘x’ could help me understand harmony in composition. Still, I struggle with simplifying expressions, but I guess it’s all part of the learning process. Does anyone have tips or easy tricks to make algebra less intimidating?",
+    "attachments": [
+      {
+        "name": "Job 1.pdf",
+        "type": "pdf",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Composition 1.png",
+        "type": "png",
+        "url": "https://images.unsplash.com/photo-1581090700227-1e37b190418e"
+      }
+    ]
+  }
+]
