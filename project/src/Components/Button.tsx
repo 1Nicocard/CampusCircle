@@ -17,7 +17,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   count?: number;
   options?: string[];
-  reactionType?: ReactionType; // 👈 like o comment
+  reactionType?: ReactionType;  // 👈 like o comment
+  controlledCount?: number;   // ← NUEVO: contador controlado desde el padre (Feed)
+  readOnly?: boolean;         // ← NUEVO: ignora clicks cuando es true
 }
 
 const baseFont = "font-[Satoshi]";
@@ -73,7 +75,9 @@ export const Button: React.FC<ButtonProps> = ({
   count,
   options,
   children,
-  reactionType = "like", // 👈 por defecto es like
+  reactionType = "like",
+  controlledCount,      // ← NUEVO
+  readOnly,             // ← NUEVO
   ...props
 }) => {
   const [liked, setLiked] = useState(false);
@@ -85,23 +89,29 @@ export const Button: React.FC<ButtonProps> = ({
 
   // --- Reacción: Like o Comentario ---
   const handleReaction = () => {
+    if (readOnly) return; // ← si es read-only, no hace nada
+  
     if (reactionType === "like") {
       setLiked(!liked);
       setLikeCount(liked ? likeCount - 1 : likeCount + 1);
     } else if (reactionType === "comment") {
-      setLikeCount(likeCount + 1);
+      // Para comentarios no haremos nada aquí porque será readOnly.
+      // (Si algún día quieres, aquí podrías abrir el input de comentario).
     }
   };
 
   // --- Reaction Button ---
   if (variant === "reaction") {
+    const displayCount = controlledCount ?? likeCount; // prioridad al controlado
+  
     return (
       <button
         {...props}
         onClick={handleReaction}
+        aria-disabled={readOnly ? true : undefined}
         className={`${variantClasses.reaction} ${
           liked && reactionType === "like" ? "bg-blue-50 text-blue-500" : ""
-        }`}
+        } ${readOnly ? "cursor-default" : ""}`}
       >
         {reactionType === "like" ? (
           <Heart
@@ -110,9 +120,9 @@ export const Button: React.FC<ButtonProps> = ({
             stroke={liked ? "#3B82F6" : "currentColor"}
           />
         ) : (
-          <MessageCircle size={20} />
+          <MessageCircle size={20} />   // ← Ícono de comentario
         )}
-        <span>{likeCount}</span>
+        <span>{displayCount}</span>
       </button>
     );
   }

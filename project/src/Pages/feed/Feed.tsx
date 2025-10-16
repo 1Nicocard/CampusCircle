@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Card from "../../Components/Card";
 import { Button } from "../../Components/Button";
 import star from "../../Assets/Star.png";
@@ -12,6 +12,20 @@ export default function Feed() {
     file?: File | null;
     fileUrl?: string | null;
   };
+
+const [searchQuery, setSearchQuery] = useState("");
+const [activeCategory, setActiveCategory] = useState<"All" | "Math" | "Art" | "Coding" | "Design">("All");
+
+const filteredPosts = useMemo(() => {
+  const q = searchQuery.trim().toLowerCase();
+  return mockData.filter((p) => {
+    const inCategory = activeCategory === "All" || p.category === activeCategory;
+    const text = `${p.title} ${p.content} ${p.user.name} ${p.category}`.toLowerCase();
+    const matches = q.length === 0 || text.includes(q);
+    return inCategory && matches;
+  });
+}, [searchQuery, activeCategory]);
+
 
   const [commentsByPost, setCommentsByPost] = useState<{
     [postId: number]: CommentData[];
@@ -94,25 +108,37 @@ export default function Feed() {
       </div>
 
       {/* 🔵 Contenedor principal */}
-      <div className="w-full bg-[#F0F3FC] flex flex-col items-center -mt-8 pt-10 pb-20 rounded-t-[40px]">
-        {/* Barra y filtros */}
-        <div className="container text-center mb-12">
-          <div className="h-[60px] bg-white rounded-full shadow-sm mx-auto max-w-[800px] mb-8"></div>
-          <div className="flex justify-center flex-wrap gap-4">
-            {["All", "Math", "Art", "Coding", "Design"].map((item, i) => (
-              <div
-                key={i}
-                className="w-[90px] h-[40px] bg-white rounded-full flex items-center justify-center font-satoshi text-gray-600"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
+     <div className="container text-center mb-12">
+  {/* BÚSQUEDA */}
+  <div className="mx-auto max-w-[800px] mb-8">
+    <input
+      type="text"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      placeholder="Search by title, content, author or category..."
+      className="w-full h-[60px] bg-white rounded-full shadow-sm px-6 text-lg sm:text-xl md:text-2xl font-sarala focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-gray-400"
+    />
+  </div>
+
+  {/* FILTROS */}
+  <div className="flex justify-center flex-wrap gap-4">
+    {(["All", "Math", "Art", "Coding", "Design"] as const).map((item) => (
+      <button
+        key={item}
+        onClick={() => setActiveCategory(item)}
+        className={`w-[110px] h-[40px] rounded-full flex items-center justify-center font-satoshi transition
+          ${activeCategory === item ? "bg-blue-500 text-white" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+      >
+        {item}
+      </button>
+    ))}
+  </div>
+</div>
+
 
         {/* 🧩 Cards del feed */}
         <div className="container flex flex-col items-center gap-16">
-          {mockData.map((post) => {
+          {filteredPosts.map((post) => {
             const { id, user, date, category, title, content, attachments } = post;
             const comments = commentsByPost[id] || [];
 
@@ -191,10 +217,19 @@ export default function Feed() {
                   </div>
 
                   {/* Reacciones */}
-                  <div className="flex items-center gap-4 mt-8">
-                    <Button variant="reaction" />
-                    <Button variant="reaction" />
-                  </div>
+                    <div className="flex items-center gap-4 mt-8">
+                    {/* Like: interactivo */}
+                      <Button variant="reaction" reactionType="like" />
+
+                    {/* Comentarios: read-only, contador real */}
+                      <Button
+                        variant="reaction"
+                        reactionType="comment"
+                        controlledCount={(commentsByPost[id] || []).length}
+                        readOnly
+                        title="Comments"
+                      />
+                    </div>
 
                   {/* Línea */}
                   <div
@@ -284,7 +319,6 @@ export default function Feed() {
             );
           })}
         </div>
-      </div>
     </section>
   );
 }
