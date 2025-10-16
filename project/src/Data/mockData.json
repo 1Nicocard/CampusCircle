@@ -23,5 +23,39 @@
         "url": "https://images.unsplash.com/photo-1581090700227-1e37b190418e"
       }
     ]
+  },
+  {
+    "id": 2,
+    "user": {
+      "name": "Lucas Carter Méndez",
+      "avatar": "/src/Assets/user2.png",
+      "role": "Software Engineering student",
+      "semester": "3rd semester"
+    },
+    "date": "2025-09-10",
+    "category": "Math",
+    "title": "Math + Architecture = 🔥 ",
+    "content": "Never thought math would be so connected to architecture. Today in class we worked with geometry to design modular spaces, and it blew my mind how simple equations can shape complex structures. Math isn’t just numbers it’s the hidden language behind every building. 🏛️📐 #MathInArchitecture #CampusCircle",
+    "attachments": []
+  },
+  {
+    "id": 3,
+    "user": {
+      "name": "Sofía Rincón",
+      "avatar": "/src/Assets/user3.png",
+      "role": "Animation student",
+      "semester": "2nd semester"
+    },
+    "date": "2025-09-12",
+    "category": "Art",
+    "title": "Animating emotions",
+    "content": "Today I experimented with timing and spacing in After Effects. It’s fascinating how just adjusting a few frames can make a character feel alive or completely robotic. Still figuring out how to make movements feel more natural.",
+    "attachments": [
+      {
+        "name": "Activity #4.png",
+        "type": "png",
+        "url": "https://dus6dayednven.cloudfront.net/app/uploads/2022/05/1-DSC00855-Editar_baja.jpg"
+      }
+    ]
   }
 ]
