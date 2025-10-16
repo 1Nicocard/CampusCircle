@@ -1,0 +1,61 @@
+[
+  {
+    "id": 1,
+    "user": {
+      "name": "Maya Villalba Gómez",
+      "avatar": "/src/Assets/Foto user.jpg",
+      "role": "Graphic design student",
+      "semester": "1st semester"
+    },
+    "date": "2025-09-08",
+    "category": "Math",
+    "title": "When ‘x’ Meets Creativity",
+    "content": "Today in Algebra I realized how much math is connected to design. At first, equations felt abstract, but when the professor explained how proportions and balance in algebra can be applied to layouts, it made so much sense. I never thought solving for ‘x’ could help me understand harmony in composition. Still, I struggle with simplifying expressions, but I guess it’s all part of the learning process. Does anyone have tips or easy tricks to make algebra less intimidating?",
+    "attachments": [
+      {
+        "name": "Job 1.pdf",
+        "type": "pdf",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+      },
+      {
+        "name": "Composition 1.png",
+        "type": "png",
+        "url": "https://images.unsplash.com/photo-1581090700227-1e37b190418e"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "user": {
+      "name": "Lucas Carter Méndez",
+      "avatar": "/src/Assets/user2.png",
+      "role": "Software Engineering student",
+      "semester": "3rd semester"
+    },
+    "date": "2025-09-10",
+    "category": "Math",
+    "title": "Math + Architecture = 🔥 ",
+    "content": "Never thought math would be so connected to architecture. Today in class we worked with geometry to design modular spaces, and it blew my mind how simple equations can shape complex structures. Math isn’t just numbers it’s the hidden language behind every building. 🏛️📐 #MathInArchitecture #CampusCircle",
+    "attachments": []
+  },
+  {
+    "id": 3,
+    "user": {
+      "name": "Sofía Rincón",
+      "avatar": "/src/Assets/user3.png",
+      "role": "Animation student",
+      "semester": "2nd semester"
+    },
+    "date": "2025-09-12",
+    "category": "Art",
+    "title": "Animating emotions",
+    "content": "Today I experimented with timing and spacing in After Effects. It’s fascinating how just adjusting a few frames can make a character feel alive or completely robotic. Still figuring out how to make movements feel more natural.",
+    "attachments": [
+      {
+        "name": "Activity #4.png",
+        "type": "png",
+        "url": "https://dus6dayednven.cloudfront.net/app/uploads/2022/05/1-DSC00855-Editar_baja.jpg"
+      }
+    ]
+  }
+]
