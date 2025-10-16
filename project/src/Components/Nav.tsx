@@ -25,7 +25,7 @@ const Navbar = () => {
 
           {/* Links */}
           <div className="hidden sm:flex items-center justify-center gap-[35px] lg:gap-[53px] font-satoshi font-bold text-[18px] lg:text-[25px]">
-            {["About us", "Home", "Profile"].map((link) => (
+            {["About", "Home", "Profile"].map((link) => (
               <button
                 key={link}
                 onClick={() => setActive(link)}
@@ -40,7 +40,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* ======= Botón con dropdown ======= */}
+          {/* Botón principal */}
           <div className="relative group">
             <button
               className="
@@ -60,10 +60,10 @@ const Navbar = () => {
               "
               style={{ backgroundClip: "padding-box" }}
             >
-              Create Post
+              Post
             </button>
 
-            {/* Dropdown (aparece al hacer hover) */}
+            {/* Dropdown */}
             <div
               className="
                 absolute left-1/2 -translate-x-1/2 top-[70px]
@@ -75,13 +75,13 @@ const Navbar = () => {
             >
               <ul className="flex flex-col gap-2">
                 <li className="hover:bg-[#0077FF]/10 py-2 rounded-md cursor-pointer transition">
-                  New Photo
+                  Photo
                 </li>
                 <li className="hover:bg-[#0077FF]/10 py-2 rounded-md cursor-pointer transition">
-                  New Video
+                  Video
                 </li>
                 <li className="hover:bg-[#0077FF]/10 py-2 rounded-md cursor-pointer transition">
-                  New Article
+                  Article
                 </li>
               </ul>
             </div>
@@ -98,11 +98,11 @@ const Navbar = () => {
           {/* Contenedor principal */}
           <div className="relative w-full max-w-[390px] h-[70px] bg-[#0077FF] border-[3px] border-white rounded-[85px] flex items-center justify-around px-4 sm:px-6 text-[#4EB2FF] shadow-[0_4px_30px_rgba(0,0,0,0.2)]">
             
-            {/* Landing */}
+            {/* Explore */}
             <button
-              onClick={() => setActive("Star")}
+              onClick={() => setActive("Explore")}
               className={`transition-all ${
-                active === "Star"
+                active === "Explore"
                   ? "stroke-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
                   : "stroke-[#4EB2FF]"
               }`}
@@ -146,7 +146,7 @@ const Navbar = () => {
               </svg>
             </button>
 
-            {/* Create post */}
+            {/* Add */}
             <button
               onClick={() => setActive("Add")}
               className={`transition-all ${
@@ -166,11 +166,11 @@ const Navbar = () => {
               </svg>
             </button>
 
-            {/* Perfil */}
+            {/* Profile */}
             <button
-              onClick={() => setActive("User")}
+              onClick={() => setActive("Profile")}
               className={`transition-all ${
-                active === "User"
+                active === "Profile"
                   ? "stroke-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
                   : "stroke-[#4EB2FF]"
               }`}
