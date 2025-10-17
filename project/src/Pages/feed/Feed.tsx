@@ -6,7 +6,7 @@ import mockData from "../../Data/mockData.json";
 import { Paperclip } from "lucide-react";
 
 export default function Feed() {
-  // Función para crear estado independiente de comentarios por post
+  // crear estado independiente de comentarios por post
   type CommentData = {
     text: string;
     file?: File | null;
@@ -85,7 +85,7 @@ const filteredPosts = useMemo(() => {
 
   return (
     <section className="w-full flex flex-col items-center">
-      {/* 🟦 Banner superior */}
+      {/* Banner superior */}
       <div className="relative w-full">
         <picture>
           <source media="(max-width: 668px)" srcSet="/src/Assets/banner-mobile.png" />

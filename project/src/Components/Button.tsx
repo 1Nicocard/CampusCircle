@@ -17,9 +17,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   count?: number;
   options?: string[];
-  reactionType?: ReactionType;  // 👈 like o comment
-  controlledCount?: number;   // ← NUEVO: contador controlado desde el padre (Feed)
-  readOnly?: boolean;         // ← NUEVO: ignora clicks cuando es true
+  reactionType?: ReactionType;  // like o comment
+  controlledCount?: number;   //  contador controlado desde el padre (Feed)
+  readOnly?: boolean;         //  ignora clicks cuando es true
 }
 
 const baseFont = "font-[Satoshi]";
@@ -87,14 +87,14 @@ export const Button: React.FC<ButtonProps> = ({
 
   // --- Reacción: Like o Comentario ---
   const handleReaction = () => {
-    if (readOnly) return; // ← si es read-only, no hace nada
+    if (readOnly) return; // 
   
     if (reactionType === "like") {
       setLiked(!liked);
       setLikeCount(liked ? likeCount - 1 : likeCount + 1);
     } else if (reactionType === "comment") {
-      // Para comentarios no haremos nada aquí porque será readOnly.
-      // (Si algún día quieres, aquí podrías abrir el input de comentario).
+      // Para comentarios 
+      
     }
   };
 
@@ -188,7 +188,6 @@ export const Button: React.FC<ButtonProps> = ({
     );
   }
 
-  // --- Default Button ---
   // --- Default Button ---
 return (
   <button
