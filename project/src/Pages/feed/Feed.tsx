@@ -107,20 +107,26 @@ const filteredPosts = useMemo(() => {
           >
             Your space to <br />share, interact and <br />discover
           </h1>
-          <Button variant="hero" className="mt-8 sm:mt-12 md:mt-16 lg:mt-20">
-            Start sharing
-          </Button>
+          <Button
+              variant="hero"
+              className="mt-8 sm:mt-12 md:mt-16 lg:mt-20
+                 bg-white text-[#0077FF]
+                border-2 border-[#0077FF]
+                hover:bg-gradient-to-r hover:from-[#74EBD5] hover:to-[#9FACE6]
+                 hover:text-white hover:border-transparent
+                 transition-all duration-300"
+>
+  Start sharing
+</Button>
         </div>
       </div>
 
-      {/* 🔵 Contenedor principal */}
+      {/*  Contenedor principal */}
      <div className="container text-center mb-12">
   {/* BÚSQUEDA */}
   <div className="mx-auto max-w-[760px] mt-6 mb-6">
   <div className="relative">
-    {/* Halo más sutil */}
     <div className="absolute -inset-1 rounded-full bg-white/70 blur-[2px] pointer-events-none" />
-    {/* Barra más pequeña */}
     <div className="relative h-[48px] bg-[#007CFF] rounded-full border-[2px] border-white flex items-center px-5">
       <input
         type="text"
@@ -183,7 +189,7 @@ const filteredPosts = useMemo(() => {
 
 
 
-        {/* 🧩 Cards del feed */}
+        {/* Cards del feed */}
         <div className="container flex flex-col items-center gap-16">
           {filteredPosts.map((post) => {
             const { id, user, date, category, title, content, attachments } = post;
@@ -268,7 +274,6 @@ const filteredPosts = useMemo(() => {
                     {/* Like: interactivo */}
                       <Button variant="reaction" reactionType="like" />
 
-                    {/* Comentarios: read-only, contador real */}
                       <Button
                         variant="reaction"
                         reactionType="comment"

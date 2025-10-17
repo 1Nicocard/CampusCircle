@@ -60,7 +60,7 @@ const Navbar = () => {
               "
               style={{ backgroundClip: "padding-box" }}
             >
-              Post
+              Create Post
             </button>
 
             {/* Dropdown */}
