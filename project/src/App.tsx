@@ -4,7 +4,7 @@ import Feed from "./Pages/feed/Feed";
 
 export default function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-[#F0F3FC]">
       {/* Navbar */}
       <Navbar />
 

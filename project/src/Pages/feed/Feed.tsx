@@ -14,17 +14,23 @@ export default function Feed() {
   };
 
 const [searchQuery, setSearchQuery] = useState("");
-const [activeCategory, setActiveCategory] = useState<"All" | "Math" | "Art" | "Coding" | "Design">("All");
+type Category = "All" | "Art" | "Literature" | "Math" | "Science" | "Social";
+const [selectedCats, setSelectedCats] = useState<Category[]>(["All"]);
+
+
 
 const filteredPosts = useMemo(() => {
   const q = searchQuery.trim().toLowerCase();
+  const usingAll = selectedCats.length === 0 || selectedCats.includes("All");
+
   return mockData.filter((p) => {
-    const inCategory = activeCategory === "All" || p.category === activeCategory;
     const text = `${p.title} ${p.content} ${p.user.name} ${p.category}`.toLowerCase();
-    const matches = q.length === 0 || text.includes(q);
+    const matches = !q || text.includes(q);
+    const inCategory = usingAll ? true : selectedCats.includes(p.category as Category);
     return inCategory && matches;
   });
-}, [searchQuery, activeCategory]);
+}, [searchQuery, selectedCats]);
+
 
 
   const [commentsByPost, setCommentsByPost] = useState<{
@@ -78,7 +84,7 @@ const filteredPosts = useMemo(() => {
   };
 
   return (
-    <section className="w-full flex flex-col items-center bg-white">
+    <section className="w-full flex flex-col items-center">
       {/* 🟦 Banner superior */}
       <div className="relative w-full">
         <picture>
@@ -110,30 +116,71 @@ const filteredPosts = useMemo(() => {
       {/* 🔵 Contenedor principal */}
      <div className="container text-center mb-12">
   {/* BÚSQUEDA */}
-  <div className="mx-auto max-w-[800px] mb-8">
-    <input
-      type="text"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      placeholder="Search by title, content, author or category..."
-      className="w-full h-[60px] bg-white rounded-full shadow-sm px-6 text-lg sm:text-xl md:text-2xl font-sarala focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-gray-400"
-    />
-  </div>
-
-  {/* FILTROS */}
-  <div className="flex justify-center flex-wrap gap-4">
-    {(["All", "Math", "Art", "Coding", "Design"] as const).map((item) => (
-      <button
-        key={item}
-        onClick={() => setActiveCategory(item)}
-        className={`w-[110px] h-[40px] rounded-full flex items-center justify-center font-satoshi transition
-          ${activeCategory === item ? "bg-blue-500 text-white" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+  <div className="mx-auto max-w-[760px] mt-6 mb-6">
+  <div className="relative">
+    {/* Halo más sutil */}
+    <div className="absolute -inset-1 rounded-full bg-white/70 blur-[2px] pointer-events-none" />
+    {/* Barra más pequeña */}
+    <div className="relative h-[48px] bg-[#007CFF] rounded-full border-[2px] border-white flex items-center px-5">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search"
+        className="flex-1 bg-transparent text-white placeholder-white/90 outline-none text-base sm:text-lg md:text-xl"
+      />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-5 h-5 text-white"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth="2"
       >
-        {item}
-      </button>
-    ))}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
+      </svg>
+    </div>
   </div>
 </div>
+</div>
+
+
+  {/* FILTROS */}
+  <div className="flex justify-center flex-wrap gap-4 mb-8">
+  {(["All", "Art", "Literature", "Math", "Science", "Social"] as const).map((item) => {
+    const active = selectedCats.includes(item);
+    return (
+      <Button
+        key={item}
+        variant="secondary"
+        onClick={() => {
+          setSelectedCats((prev) => {
+            if (item === "All") return ["All"];
+            const base = prev.includes("All") ? [] : [...prev];
+            if (base.includes(item)) {
+              const next = base.filter((c) => c !== item);
+              return next.length ? next : ["All"];
+            } else {
+              return [...base, item];
+            }
+          });
+        }}
+        className={`h-[32px] px-4 rounded-full border-[2px] outline-none
+          ${active
+            ? "bg-[#0066FF] text-white border-[#0066FF] shadow-[0_6px_18px_rgba(0,102,255,0.35)]"
+            : "bg-transparent text-[#2091FF] border-[#2091FF] hover:bg-[#EAF5FF]"}
+        `}
+      >
+        {item}
+      </Button>
+    );
+  })}
+</div>
+
+
+
+
+
 
 
         {/* 🧩 Cards del feed */}

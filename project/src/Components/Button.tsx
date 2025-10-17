@@ -43,11 +43,8 @@ const variantClasses: Record<ButtonVariant, string> = {
     transition-all duration-300 
     text-lg sm:text-xl md:text-2xl`,
 
-  secondary: `${baseFont} border border-blue-400 text-blue-500 font-semibold 
-    px-10 py-2.5 rounded-full 
-    hover:bg-blue-50 
-    transition-all duration-300 
-    text-lg sm:text-xl md:text-2xl`,
+  secondary: "inline-flex items-center justify-center whitespace-nowrap leading-tight no-underline rounded-full border-2 border-blue-400 text-blue-500 font-medium px-12 py-5 hover:bg-blue-50 transition-all duration-300 text-xl sm:text-2xl",
+
 
   select: `${baseFont} relative border border-gray-300 text-gray-600 font-medium 
     px-10 py-2.5 rounded-full flex items-center justify-between 
@@ -78,6 +75,7 @@ export const Button: React.FC<ButtonProps> = ({
   reactionType = "like",
   controlledCount,      // ← NUEVO
   readOnly,             // ← NUEVO
+  className,             
   ...props
 }) => {
   const [liked, setLiked] = useState(false);
@@ -191,9 +189,13 @@ export const Button: React.FC<ButtonProps> = ({
   }
 
   // --- Default Button ---
-  return (
-    <button {...props} className={variantClasses[variant]}>
-      {children}
-    </button>
-  );
-};
+  // --- Default Button ---
+return (
+  <button
+    {...props}
+    className={`${variantClasses[variant]} ${className ?? ""}`}
+  >
+    {children}
+  </button>
+);
+}
