@@ -34,12 +34,6 @@ export default function Footer() {
             {/* === FOOTER MOBILE === */}
             <div className="block max-[832px]:block min-[833px]:hidden relative w-full overflow-hidden">
 
-                {/* Objetos decorativos */}
-                <div className="absolute bottom-[400px] left-0 w-full flex justify-between pointer-events-none z-[3]">
-                    <img src={footerElement1} alt="Elemento izquierdo" className="h-[276px] object-contain object-left select-none" />
-                    <img src={footerElement1} alt="Elemento derecho" className="h-[276px] object-contain object-right select-none scale-x-[-1]" />
-                </div>
-
                 {/* Footer móvil */}
                 <footer className="relative w-full flex flex-col items-center justify-end z-[10] mt-0 mb-0">
 
