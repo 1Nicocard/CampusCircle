@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef } from "react"; 
 import { Button } from "../../Components/Button";
+import { Trash2 } from "lucide-react";
 
 export default function Post() {
   const subjects = ["Design", "Literature", "Math", "Science", "Social"];
@@ -10,40 +11,51 @@ export default function Post() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const toggleSubject = (subject: string) => {
-    setSelectedSubjects(prev =>
-      prev.includes(subject) ? prev.filter(s => s !== subject) : [...prev, subject]
+    setSelectedSubjects((prev) =>
+      prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject]
     );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files;
-    if (!selected) return;
-    setFiles(prev => [...prev, ...Array.from(selected)]);
-    e.currentTarget.value = "";
+    if (!e.target.files) return;
+    const selectedFiles = Array.from(e.target.files);
+    setFiles((prev) => [...prev, ...selectedFiles]);
+    e.target.value = "";
   };
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const getFileIcon = (file: File) => {
-    if (file.type === "application/pdf") return "https://cdn-icons-png.flaticon.com/512/337/337946.png";
-    if (file.type.startsWith("image/")) return "https://cdn-icons-png.flaticon.com/512/337/337940.png";
-    if (file.type.startsWith("video/")) return "https://cdn-icons-png.flaticon.com/512/1160/1160042.png";
-    if (file.name.endsWith(".zip") || file.name.endsWith(".rar")) return "https://cdn-icons-png.flaticon.com/512/2306/2306311.png";
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".pdf"))
+      return "https://cdn-icons-png.flaticon.com/512/337/337946.png";
+    if (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png"))
+      return "https://cdn-icons-png.flaticon.com/512/337/337940.png";
+    if (name.endsWith(".mp3"))
+      return "https://cdn-icons-png.flaticon.com/512/727/727240.png";
     return "https://cdn-icons-png.flaticon.com/512/833/833524.png";
+  };
+
+  const formatFileName = (name: string) => {
+    return name.length > 45 ? name.slice(0, 45) + "..." : name;
+  };
+
+  const openFile = (file: File) => {
+    const url = URL.createObjectURL(file);
+    window.open(url, "_blank");
   };
 
   return (
     <div className="container pt-40 pb-10 bg-[#F0F3FC] min-h-screen">
-      {/* Title */}
       <div className="flex items-center gap-4 mb-10">
         <img src="/src/Assets/+.png" alt="Add" className="w-[77px] h-[77px]" />
         <h1 className="font-[Satoshi] font-bold text-[80px] text-[#0077FF]">Create your question</h1>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* LEFT PANEL */}
+
         <div className="col-span-12 lg:col-span-8 bg-white rounded-[30px] shadow p-8 flex flex-col" style={{ height: "650px" }}>
           <input
             type="text"
@@ -81,30 +93,54 @@ export default function Post() {
           <Button variant="important" className="self-end mt-3">Share</Button>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="col-span-12 lg:col-span-4 bg-white rounded-[30px] shadow p-8 flex flex-col items-center" style={{ height: "650px" }}>
+        <div
+          className="col-span-12 lg:col-span-4 bg-white rounded-[30px] shadow p-8 flex flex-col items-center"
+          style={{ height: "650px" }}
+        >
           <h2 className="font-[Satoshi] font-bold text-[50px] text-[#454545] text-center">Files</h2>
           <div className="h-[2px] w-full bg-[#CFCFCF] opacity-60 mb-4"></div>
 
-          <div className="flex flex-col gap-3 flex-grow overflow-y-auto w-full pr-2">
+          <div className="flex flex-col gap-4 flex-grow overflow-y-auto w-full pr-2">
             {files.map((file, index) => (
-              <div key={index} className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <img src={getFileIcon(file)} className="w-8 h-8" />
-                  <span className="font-sarala text-[20px] text-[#565656]">{file.name}</span>
+              <div
+                key={index}
+                className="flex items-center justify-between px-1 py-3 rounded-lg hover:bg-[#F5F7FB] transition cursor-pointer"
+                onClick={() => openFile(file)}
+              >
+                <div className="flex items-center gap-3 w-[80%]">
+                  <img src={getFileIcon(file)} className="w-8 h-8 flex-shrink-0" />
+
+                  {/* Tooltip con nombre completo + recorte visual */}
+                  <span
+                    title={file.name}
+                    className="font-sarala text-[20px] text-[#565656] truncate"
+                  >
+                    {formatFileName(file.name)}
+                  </span>
                 </div>
-                <img
-                  src="/src/Assets/trash.png"
-                  onClick={() => removeFile(index)}
-                  className="w-[22px] h-[26px] cursor-pointer opacity-70 hover:opacity-100"
+
+                <Trash2
+                  size={26}
+                  color="#CFCFCF"
+                  className="cursor-pointer hover:opacity-70 flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation(); // ← Para que NO abra el archivo cuando borras
+                    removeFile(index);
+                  }}
                 />
               </div>
             ))}
           </div>
 
-          {/* ✅ AQUÍ ESTABA EL PROBLEMA */}
           <div className="mt-4 w-full text-center">
-            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.mp3"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
 
             <div onClick={() => fileInputRef.current?.click()}>
               <Button variant="secondary">Add file</Button>
