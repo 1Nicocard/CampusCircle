@@ -36,7 +36,6 @@ export default function Post() {
 
   return (
     <div className="container pt-40 pb-10 bg-[#F0F3FC] min-h-screen">
-
       {/* Title */}
       <div className="flex items-center gap-4 mb-10">
         <img src="/src/Assets/+.png" alt="Add" className="w-[77px] h-[77px]" />
@@ -44,10 +43,8 @@ export default function Post() {
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-
         {/* LEFT PANEL */}
         <div className="col-span-12 lg:col-span-8 bg-white rounded-[30px] shadow p-8 flex flex-col" style={{ height: "650px" }}>
-
           <input
             type="text"
             value={header}
@@ -74,7 +71,6 @@ export default function Post() {
             ))}
           </div>
 
-          {/* TEXTAREA BAJADA */}
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -90,7 +86,6 @@ export default function Post() {
           <h2 className="font-[Satoshi] font-bold text-[50px] text-[#454545] text-center">Files</h2>
           <div className="h-[2px] w-full bg-[#CFCFCF] opacity-60 mb-4"></div>
 
-          {/* LISTA DE ARCHIVOS (CORRECTA) */}
           <div className="flex flex-col gap-3 flex-grow overflow-y-auto w-full pr-2">
             {files.map((file, index) => (
               <div key={index} className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-xl">
@@ -107,10 +102,13 @@ export default function Post() {
             ))}
           </div>
 
-          {/* INPUT + BUTTON */}
+          {/* ✅ AQUÍ ESTABA EL PROBLEMA */}
           <div className="mt-4 w-full text-center">
             <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
-            <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Add file</Button>
+
+            <div onClick={() => fileInputRef.current?.click()}>
+              <Button variant="secondary">Add file</Button>
+            </div>
           </div>
 
         </div>
