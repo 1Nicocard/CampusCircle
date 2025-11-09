@@ -1,6 +1,7 @@
 import Navbar from "./Components/Nav";
 import Footer from "./Components/Footer";
 import Feed from "./Pages/feed/Feed";
+import Landing from "./Pages/landing/Landing"; {/* BORRARRR */}
 
 export default function App() {
   return (
@@ -10,7 +11,7 @@ export default function App() {
 
       {/* Contenido principal (ocupa todo el espacio libre) */}
       <main className="flex-grow">
-        <Feed />
+        <  Landing />
       </main>
 
       {/* Footer fijo al final */}
