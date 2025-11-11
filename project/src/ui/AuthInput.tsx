@@ -1,4 +1,3 @@
-// src/ui/AuthInput.tsx
 import type { ReactNode } from "react";
 
 export default function AuthInput({

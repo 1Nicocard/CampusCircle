@@ -1,4 +1,3 @@
-// src/ui/AuthCTA.tsx
 export default function AuthCTA({
   children, onClick, type="button", disabled
 }:{
