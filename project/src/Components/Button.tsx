@@ -26,43 +26,42 @@ const baseFont = "font-[Satoshi]";
 
 const variantClasses: Record<ButtonVariant, string> = {
   navigation: `${baseFont} bg-gradient-to-r from-blue-300 to-blue-500 text-white font-semibold 
-    px-10 py-2.5 rounded-full 
+    px-12 py-3 rounded-full 
     hover:from-blue-400 hover:to-blue-600 
     transition-all duration-300 shadow-sm 
-    text-lg sm:text-xl md:text-2xl`,
+    text-lg sm:text-xl md:text-2xl tracking-tight`,
 
-  hero: `${baseFont} border border-blue-200 text-blue-500 font-semibold 
-    px-10 py-2.5 rounded-full 
-    hover:bg-gradient-to-r hover:from-emerald-300 hover:via-sky-300 hover:to-purple-300 hover:text-white 
+  hero: `${baseFont} border-2 border-blue-200 text-blue-500 font-semibold 
+    px-12 py-3 rounded-full 
+    hover:bg-gradient-to-r hover:from-emerald-300 hover:via-sky-300 hover:to-purple-300 hover:text-white hover:border-transparent 
     transition-all duration-300 
-    text-lg sm:text-xl md:text-2xl`,
+    text-lg sm:text-xl md:text-2xl tracking-tight`,
 
-  important: `${baseFont} bg-blue-400 text-white font-semibold 
-    px-10 py-2.5 rounded-full 
+  important: `${baseFont} bg-blue-500 text-white font-semibold 
+    px-12 py-3 rounded-full 
     hover:bg-blue-600 
+    transition-all duration-300 shadow-sm 
+    text-lg sm:text-xl md:text-2xl tracking-tight`,
+
+  secondary: `${baseFont} inline-flex items-center justify-center whitespace-nowrap leading-tight no-underline rounded-full border-2 border-blue-400 text-blue-500 font-medium px-12 py-4 hover:bg-blue-50 hover:border-blue-500 transition-all duration-300 text-xl sm:text-2xl tracking-tight`,
+
+  select: `${baseFont} relative border-2 border-gray-300 text-gray-600 font-medium 
+    px-12 py-3 rounded-full flex items-center justify-between 
+    hover:border-gray-400 hover:bg-gray-50 
     transition-all duration-300 
-    text-lg sm:text-xl md:text-2xl`,
-
-  secondary: "inline-flex items-center justify-center whitespace-nowrap leading-tight no-underline rounded-full border-2 border-blue-400 text-blue-500 font-medium px-12 py-5 hover:bg-blue-50 transition-all duration-300 text-xl sm:text-2xl",
-
-
-  select: `${baseFont} relative border border-gray-300 text-gray-600 font-medium 
-    px-10 py-2.5 rounded-full flex items-center justify-between 
-    hover:border-gray-400 
-    transition-all duration-300 
-    text-lg sm:text-xl md:text-2xl`,
+    text-lg sm:text-xl md:text-2xl tracking-tight`,
 
   label: `${baseFont} bg-gray-100 text-gray-400 font-medium 
-    px-10 py-2.5 rounded-full cursor-not-allowed 
-    text-lg sm:text-xl md:text-2xl`,
+    px-12 py-3 rounded-full cursor-not-allowed 
+    text-lg sm:text-xl md:text-2xl tracking-tight`,
 
   reaction: `${baseFont} flex items-center gap-3 bg-gray-100 text-gray-400 font-medium 
-    px-8 py-2.5 rounded-full 
+    px-10 py-3 rounded-full 
     transition-all duration-300 
-    text-lg sm:text-xl md:text-2xl hover:text-blue-400`,
+    text-lg sm:text-xl md:text-2xl hover:text-blue-500 hover:bg-blue-50`,
 
   social: `${baseFont} flex items-center gap-3 bg-gray-100 text-gray-500 font-medium 
-    px-8 py-2.5 rounded-full 
+    px-10 py-3 rounded-full 
     transition-all duration-300 
     text-lg sm:text-xl md:text-2xl hover:bg-blue-500 hover:text-white`,
 };
@@ -113,14 +112,15 @@ export const Button: React.FC<ButtonProps> = ({
       >
         {reactionType === "like" ? (
           <Heart
-            size={20}
+            size={24}
             fill={liked ? "#3B82F6" : "none"}
             stroke={liked ? "#3B82F6" : "currentColor"}
+            className="transition-colors duration-300"
           />
         ) : (
-          <MessageCircle size={20} />   // ← Ícono de comentario
+          <MessageCircle size={24} />
         )}
-        <span>{displayCount}</span>
+        <span className="font-medium">{displayCount}</span>
       </button>
     );
   }
@@ -136,12 +136,12 @@ export const Button: React.FC<ButtonProps> = ({
         }`}
       >
         <Globe
-          size={20}
+          size={24}
           className={`transition-colors duration-300 ${
             active ? "text-blue-500" : ""
           }`}
         />
-        <span>Social</span>
+        <span className="font-medium">Social</span>
       </button>
     );
   }
@@ -169,7 +169,7 @@ export const Button: React.FC<ButtonProps> = ({
           </svg>
         </button>
         {open && (
-          <ul className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-sm z-10">
+          <ul className="absolute top-full left-0 w-full mt-3 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
             {options.map((option) => (
               <li
                 key={option}
@@ -177,7 +177,7 @@ export const Button: React.FC<ButtonProps> = ({
                   setSelected(option);
                   setOpen(false);
                 }}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 cursor-pointer rounded-lg"
+                className="px-5 py-3 text-gray-600 hover:bg-gray-100 cursor-pointer transition-colors duration-200 font-sarala text-[16px]"
               >
                 {option}
               </li>

@@ -5,7 +5,7 @@ import footermobileElement2 from "../Assets/Footer mobile element 2.png";
 import LogoGif from "../Assets/Logo gif.gif";
 import { ChevronDown } from "lucide-react";
 
-export default function Footer() {
+function Footer() {
     const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
         about: false,
         social: false,
@@ -167,3 +167,5 @@ export default function Footer() {
         </div>
     );
 }
+
+export default Footer;
