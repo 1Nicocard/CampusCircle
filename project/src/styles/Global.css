@@ -1,6 +1,8 @@
 @import url("https://api.fontshare.com/v2/css?f[]=satoshi@700&display=swap");
 
 body {
+
+  background-color: #F0F3FC;
   font-family: "Satoshi", sans-serif;
 }
 

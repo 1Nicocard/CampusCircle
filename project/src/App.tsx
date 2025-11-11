@@ -1,24 +1,74 @@
-import { useLocation } from "react-router-dom";
-import Navbar from "./Components/Nav";
-import Footer from "./Components/Footer";
-import Post from "./Pages/post/Post";
-import AppRouter from "./routes/AppRouter";
+// src/App.tsx
+import React from "react";
+import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 
-export default function App(){
-  const { pathname } = useLocation();
-  const isAuth = pathname.startsWith("/signin") || pathname.startsWith("/signup");
+import Loader from "./Pages/loader/Loader";
+import Landing from "./Pages/landing/Landing";
+import SignIn from "./Pages/auth/SignIn";
+import SignUp from "./Pages/auth/SignUp";
+import Feed from "./Pages/feed/Feed";
+import Profile from "./Pages/profile/Profile";
+import CreatePost from "./Pages/post/Post";
+
+import Nav from "./Components/Nav";
+import Footer from "./Components/Footer";
+
+// Layout para páginas privadas
+const FeedLayout: React.FC = () => {
+  const navigate = useNavigate();
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/signin", { replace: true });
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F0F3FC]">
-      {/* Navbar */}
-      {!isAuth && <Navbar />}
-
-      {/* Contenido principal (ocupa todo el espacio libre) */}
-      <main className="flex-grow">
-        <Post/>
-        <AppRouter />
+    <div className="min-h-screen flex flex-col">
+      <Nav /> {/* Navbar visible */}
+      <main className="flex-1 mt-[113px]">
+        <Outlet /> {/* Renderiza Feed, Profile o CreatePost */}
       </main>
-      {!isAuth && <Footer />}
+      <Footer /> {/* Footer visible */}
     </div>
+  );
+};
+
+export default function App() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  return (
+    <Routes>
+      {/* Loader - sin Nav ni Footer */}
+      <Route path="/" element={<Loader />} />
+
+      {/* Landing - Nav y Footer visibles */}
+      <Route
+        path="/landing"
+        element={
+          <>
+            <Nav />
+            <Landing />
+            <Footer />
+          </>
+        }
+      />
+
+      {/* SignIn y SignUp - sin Nav ni Footer */}
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+
+      {/* Páginas privadas */}
+      <Route
+        path="/feed"
+        element={token ? <FeedLayout /> : <Navigate to="/signin" replace />}
+      >
+        <Route index element={<Feed />} />                 {/* /feed */}
+        <Route path="create-post" element={<CreatePost />} /> {/* /feed/create-post */}
+        <Route path="profile" element={<Profile />} />     {/* /feed/profile */}
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
