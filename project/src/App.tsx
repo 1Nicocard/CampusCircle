@@ -1,20 +1,20 @@
+import { useLocation } from "react-router-dom";
 import Navbar from "./Components/Nav";
 import Footer from "./Components/Footer";
-import Feed from "./Pages/feed/Feed";
+import AppRouter from "./routes/AppRouter";
 
-export default function App() {
+export default function App(){
+  const { pathname } = useLocation();
+  const isAuth = pathname.startsWith("/signin") || pathname.startsWith("/signup");
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#F0F3FC]">
-      {/* Navbar */}
-      <Navbar />
-
-      {/* Contenido principal (ocupa todo el espacio libre) */}
-      <main className="flex-grow">
-        <Feed />
+    <div className="min-h-screen bg-white">
+      {!isAuth && <Navbar />}
+      <main className={!isAuth ? "pt-[120px]" : ""}>
+        <AppRouter />
       </main>
-
-      {/* Footer fijo al final */}
-      <Footer />
+      {!isAuth && <Footer />}
     </div>
   );
 }
+

@@ -5,7 +5,7 @@ import star from "../../Assets/Star.png";
 import mockData from "../../Data/mockData.json";
 import { Paperclip } from "lucide-react";
 
-export default function Feed() {
+function Feed() {
   // crear estado independiente de comentarios por post
   type CommentData = {
     text: string;
@@ -374,3 +374,5 @@ const filteredPosts = useMemo(() => {
     </section>
   );
 }
+
+export default Feed;

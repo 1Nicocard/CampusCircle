@@ -25,3 +25,22 @@ body {
 body {
   font-family: 'Sarala', sans-serif;
 }
+
+/* CSS Custom Properties for CampusCircle */
+:root {
+  /* Colors */
+  --cc-bg: #ffffff;
+  --cc-card: #ffffff;
+  --cc-blue: #3b82f6;
+  --cc-blue-dark: #2563eb;
+  --cc-text: #1f2937;
+  --cc-muted: #6b7280;
+  --cc-border: #e5e7eb;
+  
+  /* Shadows */
+  --cc-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  
+  /* Border Radius */
+  --cc-radius-card: 12px;
+  --cc-radius-pill: 9999px;
+}
