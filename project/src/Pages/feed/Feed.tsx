@@ -158,10 +158,25 @@ export default function Feed() {
                     <img src={user?.avatar} alt={user?.name} className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full object-cover" />
                     <div>
                       <h2 className="text-[26px] md:text-[32px] font-satoshi font-bold text-[#565656] leading-tight">{user?.name}</h2>
-                      <p className="text-[18px] md:text-[22px] font-satoshi font-medium text-[#949494]">
-                        {user?.email}
-                      </p>
+                      <p className="text-[14px] md:text-[16px] text-[#7B8694]">{(() => {
+                        const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+                        if (!isObj(user)) return 'Student';
+                        const u = user as Record<string, unknown>;
+                        const program = typeof u.program === 'string' ? u.program : (typeof u.major === 'string' ? u.major : 'Program');
+                        const term = typeof u.term === 'string' ? u.term : (typeof u.semester === 'string' ? u.semester : 'Term');
+                        return `${program} | ${term}`;
+                      })()}</p>
                     </div>
+                  </div>
+                  {/* Post date top-right */}
+                  <div className="ml-auto text-right text-[#A1A1A1] text-sm md:text-base">
+                    {(() => {
+                      const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+                      let val: unknown = undefined;
+                      if (isObj(post) && 'createdAt' in post) val = (post as Record<string, unknown>).createdAt;
+                      const d = val ? new Date(String(val)) : new Date();
+                      return d.toLocaleDateString();
+                    })()}
                   </div>
                 </div>
 
@@ -173,9 +188,9 @@ export default function Feed() {
 
                 {/* Categoría */}
                 <div className="mt-4">
-                  <Button variant="label">
-                    <img src={tagIcons[tag || "Default"]} className="w-5 h-5 mr-2 inline-block" alt={tag || "tag"} />
-                    {tag || "General"}
+                  <Button variant="label" className="px-4 py-1 text-sm inline-flex items-center justify-center gap-2">
+                    <img src={tagIcons[tag || "Default"]} className="w-5 h-5 inline-block" alt={tag || "tag"} />
+                    <span className="text-sm leading-none">{tag || "General"}</span>
                   </Button>
                 </div>
 
