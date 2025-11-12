@@ -1,45 +1,62 @@
 // src/Pages/profile/Profile.tsx
+// src/Pages/profile/Profile.tsx
 import { Link } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
 import { getCurrentUser } from "../../lib/auth";
-import mockData from "../../Data/mockData.json";
+import {
+  getAllPosts,
+  toggleLike,
+  isLikedByMe,
+  type Post as FullPost,
+  type PostFile,
+} from "../../lib/postStore"; // nuevo archivo que gestiona likes persistentes
 
-// Iconos del Feed (mismos URLs / estilos)
-const iconTag =
-  "https://cdn-icons-png.flaticon.com/512/819/819814.png"; // o el mismo que usen en feed
-const iconLike =
-  "https://cdn-icons-png.flaticon.com/512/833/833472.png";
-const iconComment =
-  "https://cdn-icons-png.flaticon.com/512/1380/1380338.png";
+// Iconos: map tags to local assets
+const tagIcons: Record<string, string> = {
+  Design: "/src/Assets/design.svg",
+  Literature: "/src/Assets/literature.svg",
+  Math: "/src/Assets/math.svg",
+  Science: "/src/Assets/science.svg",
+  Social: "/src/Assets/social.svg",
+  Default: "/src/Assets/Star.png",
+};
 
-// Iconos monoline del sidebar
+const iconComment = "/src/Assets/comment.png";
+
 import icInstitution from "../../Assets/icons/academicicon.svg";
 import icProgram from "../../Assets/icons/programicon.svg";
 import icTerm from "../../Assets/icons/calendaricon.svg";
 
-type Attachment = { name?: string; type: string; url?: string };
-type PostUser = { name: string; avatar?: string; role?: string; semester?: string };
-type Post = {
-  id: number | string;
-  user: PostUser;
-  date?: string;
-  category?: string;
-  title?: string;
-  content?: string;
-  likes?: number;
-  comments?: unknown[];
-  attachments?: Attachment[];
-};
-
-function loadAllPosts() {
-  const stored = JSON.parse(localStorage.getItem("posts") || "[]");
-  if (stored.length > 0) return stored;
-  // Fallback al mockData si aún no está sembrado
-  const seeded = Array.isArray(mockData) ? mockData : (mockData as any)?.posts || [];
-  return seeded;
-}
+type Post = FullPost;
 
 export default function Profile() {
   const user = getCurrentUser();
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  const refresh = useCallback(() => {
+    if (!user) return setPosts([]);
+    const all = getAllPosts();
+    // Filtra los posts del usuario actual
+    const mine = all.filter((p) => {
+      const byEmail =
+        p?.user?.email &&
+        user.email &&
+        String(p.user.email).toLowerCase() ===
+          String(user.email).toLowerCase();
+      const byName =
+        String(p?.user?.name || "").trim().toLowerCase() ===
+        String(user.name || "").trim().toLowerCase();
+      return byEmail || byName;
+    });
+    setPosts(mine);
+  }, [user]);
+
+  useEffect(() => {
+    refresh();
+    const onUpdate = () => refresh();
+    window.addEventListener("posts:update", onUpdate);
+    return () => window.removeEventListener("posts:update", onUpdate);
+  }, [refresh]);
 
   if (!user) {
     return (
@@ -59,39 +76,23 @@ export default function Profile() {
     );
   }
 
-  const allPosts = loadAllPosts();
-
-// match por email (preferido) o por nombre (seed viejo no trae email)
-  const posts = allPosts.filter((p: any) => {
-  const byEmail = p?.user?.email && user.email && String(p.user.email).toLowerCase() === String(user.email).toLowerCase();
-  const byName  = String(p?.user?.name || "").trim().toLowerCase() === String(user.name || "").trim().toLowerCase();
-  return byEmail || byName;
-  });
-
-
   return (
     <section className="w-full bg-[#F4F7FB]">
-    <div className="container pt-40 md:pt-44 pb-4">
-  <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-    {/* Foto arriba en mobile, a la izquierda en desktop */}
-    <img
-      src={user?.avatar || "/src/Assets/Foto user.jpg"}
-      alt="Profile picture"
-      className="w-20 h-20 md:w-20 md:h-20 rounded-full object-cover border-2 border-blue-400 mx-auto md:mx-0"
-    />
+      <div className="container pt-40 md:pt-44 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+          <img
+            src={user?.avatar || "/src/Assets/Foto user.jpg"}
+            alt="Profile picture"
+            className="w-20 h-20 md:w-20 md:h-20 rounded-full object-cover border-2 border-blue-400 mx-auto md:mx-0"
+          />
 
-    {/* Nombre */}
-    <div className="text-center md:text-left">
-      <h1 className="font-satoshi font-bold text-[34px] md:text-[54px] leading-tight text-[#1E90FF]">
-        {user.name || "Your name"}
-      </h1>
-      <p className="text-gray-600 text-[14px] md:text-[16px]">
-        
-      </p>
-    </div>
-  </div>
-</div>
-
+          <div className="text-center md:text-left">
+            <h1 className="font-satoshi font-bold text-[34px] md:text-[54px] leading-tight text-[#1E90FF]">
+              {user.name || "Your name"}
+            </h1>
+          </div>
+        </div>
+      </div>
 
       <div className="container pb-20">
         <div className="grid grid-cols-12 gap-6">
@@ -133,7 +134,17 @@ export default function Profile() {
           {/* ===== RIGHT: POSTS ===== */}
           <main className="col-span-12 lg:col-span-8 space-y-5">
             {posts.length > 0 ? (
-              posts.map((post: Post) => <PostCard key={post.id} post={post} />)
+              posts.map((post: Post) => (
+                <MiniPostCard
+                  key={post.id}
+                  post={post}
+                  onChange={(u) =>
+                    setPosts((prev) =>
+                      prev.map((x) => (x.id === u.id ? u : x))
+                    )
+                  }
+                />
+              ))
             ) : (
               <div className="bg-white rounded-[22px] border border-[#E6E8EE] shadow-[0_8px_24px_rgba(24,72,167,.10)] p-8 text-center">
                 <p className="text-[#667085]">No posts yet.</p>
@@ -168,6 +179,90 @@ function AboutRow({
   );
 }
 
+/* ---------- Mini Card de Post (según imagen) ---------- */
+
+function MiniPostCard({
+  post,
+  onChange,
+}: {
+  post: Post;
+  onChange?: (u: Post) => void;
+}) {
+  const liked = isLikedByMe(post);
+  const date = post.createdAt ? new Date(post.createdAt) : new Date();
+  const dateStr = new Intl.DateTimeFormat("en-GB").format(date);
+
+  const handleLike = () => {
+    try {
+      const updated = toggleLike(String(post.id));
+      if (updated) onChange?.(updated as Post);
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  const spark = "/src/Assets/icons/spark.svg";
+
+  return (
+    <article className="bg-white rounded-[22px] border border-[#E6E8EE] shadow-[0_8px_24px_rgba(24,72,167,.10)] p-6 md:p-7">
+      {/* Top Row */}
+      <div className="flex items-start justify-between gap-4">
+        <h3 className="flex items-center gap-2 text-[18px] md:text-[20px] font-satoshi font-bold text-[#2B2F36]">
+          <img src={spark} className="inline-block w-2.5 h-2.5" alt="spark" />
+          {post.content || "Untitled post"}
+        </h3>
+        <time className="text-[13px] md:text-[14px] text-[#8B94A5] whitespace-nowrap">
+          {dateStr}
+        </time>
+      </div>
+
+      {/* Chips row */}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        {/* Tag */}
+  <Chip icon={tagIcons[post.tag || "Default"]}>{post.tag || "Design"}</Chip>
+
+        {/* Like */}
+        <button
+          onClick={handleLike}
+          className={`inline-flex items-center gap-2 px-3 h-[34px] rounded-full border text-[14px] transition-transform active:scale-95 ${
+            liked
+              ? "bg-[#FFF4F4] border-red-200"
+              : "bg-[#F1F4F9] border-[#E6E8EE]"
+          }`}
+        >
+            <img src="/src/Assets/like.svg" alt="like" className={`w-4 h-4 ${liked ? "opacity-100" : "opacity-60"}`} />
+          <span
+            className={
+              liked ? "text-[#DC2626] font-medium" : "text-[#667085]"
+            }
+          >
+            {post.likes ?? 0}
+          </span>
+        </button>
+
+        {/* Comments */}
+  <Chip icon={iconComment}>{post.comments ?? 0}</Chip>
+
+        {/* Attachments */}
+  {(post.files || []).map((file: PostFile, i: number) => (
+            <Chip key={i}>
+              <img
+                src={
+                  file.type === "pdf"
+                    ? "https://cdn-icons-png.flaticon.com/512/337/337946.png"
+                    : "https://cdn-icons-png.flaticon.com/512/337/337940.png"
+                }
+                alt={file.type}
+                className="w-5 h-5"
+              />
+            </Chip>
+          )
+        )}
+      </div>
+    </article>
+  );
+}
+
 function Chip({
   children,
   icon,
@@ -182,45 +277,3 @@ function Chip({
     </span>
   );
 }
-
-function PostCard({ post }: { post: Post }) {
-  const date = post.date ? new Date(post.date) : new Date();
-  const dateStr = new Intl.DateTimeFormat("en-GB").format(date);
-
-  return (
-    <article className="bg-white rounded-[22px] border border-[#E6E8EE] shadow-[0_8px_24px_rgba(24,72,167,.10)] p-6 md:p-7">
-      {/* top row */}
-      <div className="flex items-start justify-between gap-4">
-        <h3 className="flex items-center gap-2 text-[20px] md:text-[22px] font-satoshi font-bold text-[#2B2F36]">
-          <span className="inline-block w-2.5 h-2.5 bg-[#1E90FF] rounded-full" />
-          {post.title || "Untitled post"}
-        </h3>
-        <time className="text-[13px] md:text-[14px] text-[#8B94A5] whitespace-nowrap">
-          {dateStr}
-        </time>
-      </div>
-
-      {/* chips */}
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Chip icon={iconTag}>{post.category || "Design"}</Chip>
-  <Chip icon={iconLike}>{post.likes ?? 0}</Chip>
-  <Chip icon={iconComment}>{post.comments?.length ?? 0}</Chip>
-
-  {(post.attachments || []).map((file: Attachment, i: number) => (
-          <Chip key={i}>
-            <img
-              src={
-                file.type === "pdf"
-                  ? "https://cdn-icons-png.flaticon.com/512/337/337946.png"
-                  : "https://cdn-icons-png.flaticon.com/512/337/337940.png"
-              }
-              alt={file.type}
-              className="w-5 h-5"
-            />
-          </Chip>
-        ))}
-      </div>
-    </article>
-  );
-}
-

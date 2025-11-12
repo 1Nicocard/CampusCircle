@@ -89,6 +89,24 @@ export const Button: React.FC<ButtonProps> = ({
     if (readOnly) return; // 
   
     if (reactionType === "like") {
+      // If parent provided an onClick (controlled flow), defer the
+      // persisted toggle to the parent and avoid updating internal
+      // likeCount when a controlledCount is used.
+      // Call parent's onClick for persistence first.
+      // (props comes from outer scope via rest spread)
+  const parentOnClick = (props as unknown as { onClick?: (e?: unknown) => void }).onClick;
+      if (parentOnClick) {
+        try {
+          parentOnClick();
+        } catch (e) {
+          console.warn(e);
+        }
+        // Toggle local liked for immediate visual feedback, but do not
+        // change internal likeCount if controlledCount is provided.
+        setLiked((s) => !s);
+        return;
+      }
+
       setLiked(!liked);
       setLikeCount(liked ? likeCount - 1 : likeCount + 1);
     } else if (reactionType === "comment") {
