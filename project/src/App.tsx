@@ -13,6 +13,7 @@ import EditProfile from "./Pages/profile/EditProfile";
 
 import Nav from "./Components/Nav";
 import Footer from "./Components/Footer";
+import { getCurrentUser } from "./lib/auth";
 
 // Layout para páginas privadas
 const FeedLayout: React.FC = () => {
@@ -30,7 +31,7 @@ const FeedLayout: React.FC = () => {
 };
 
 export default function App() {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const user = getCurrentUser();
 
   return (
     <Routes>
@@ -56,7 +57,7 @@ export default function App() {
       {/* Páginas privadas */}
       <Route
         path="/feed"
-        element={token ? <FeedLayout /> : <Navigate to="/signin" replace />}
+        element={user ? <FeedLayout /> : <Navigate to="/signin" replace />}
       >
         <Route index element={<Feed />} />                 {/* /feed */}
         <Route path="create-post" element={<CreatePost />} /> {/* /feed/create-post */}

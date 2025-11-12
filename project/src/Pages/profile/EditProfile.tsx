@@ -41,7 +41,7 @@ export default function EditProfile() {
       major: program.trim(),
       avatar: avatar?.trim() || undefined,
     });
-    nav("/profile");
+  nav("/feed/profile");
   }
 
   function triggerFile() {
