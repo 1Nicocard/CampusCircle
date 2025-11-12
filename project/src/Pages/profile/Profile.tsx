@@ -109,7 +109,7 @@ export default function Profile() {
               </ul>
 
               <Link
-                to="/profile/edit"
+                to="/feed/profile/edit"
                 className="mt-6 inline-flex items-center justify-center w-full h-[44px] rounded-full
                            bg-[#1E90FF] text-white font-ABeeZee text-[16px] hover:bg-[#1478E9] transition"
               >

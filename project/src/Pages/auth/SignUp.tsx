@@ -34,8 +34,8 @@ export default function SignUp(){
       major: program.trim() || undefined,
       semester: term.trim() || undefined,
     };
-    signUp(u);
-    nav("/profile");
+  signUp(u);
+  nav("/feed", { replace: true } );
   }
 
   return (

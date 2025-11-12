@@ -19,8 +19,8 @@ export default function SignIn(){
     e.preventDefault();
     setErr(undefined);
     const r = signIn(email.trim(), pw.trim());
-    if(!r.ok) return setErr(r.message || "Invalid credentials");
-    nav("/profile");
+  if(!r.ok) return setErr(r.message || "Invalid credentials");
+  nav("/feed", { replace: true } );
   }
 
   return (

@@ -32,16 +32,32 @@ export type User = {
     }
     // En este MVP no encriptamos; asumimos "cualquier password" por ahora.
     storage.set(SESSION_KEY, { email });
+    // also set a simple token for legacy checks in App.tsx
+    try {
+      localStorage.setItem("token", "ok");
+    } catch {
+      // ignore
+    }
     return { ok: true };
   }
   
   export function signUp(user: User) {
     storage.set(USER_KEY, user);
     storage.set(SESSION_KEY, { email: user.email });
+      try {
+        localStorage.setItem("token", "ok");
+      } catch {
+        // ignore
+      }
   }
   
   export function signOut() {
     storage.remove(SESSION_KEY);
+      try {
+        localStorage.removeItem("token");
+      } catch {
+        // ignore
+      }
   }
   
   export function updateProfile(partial: Partial<User>) {
