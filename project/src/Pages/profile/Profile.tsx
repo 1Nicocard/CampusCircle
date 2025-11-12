@@ -30,6 +30,14 @@ type Post = {
   attachments?: Attachment[];
 };
 
+function loadAllPosts() {
+  const stored = JSON.parse(localStorage.getItem("posts") || "[]");
+  if (stored.length > 0) return stored;
+  // Fallback al mockData si aún no está sembrado
+  const seeded = Array.isArray(mockData) ? mockData : (mockData as any)?.posts || [];
+  return seeded;
+}
+
 export default function Profile() {
   const user = getCurrentUser();
 
@@ -51,11 +59,15 @@ export default function Profile() {
     );
   }
 
-  const posts = (mockData as Post[]).filter(
-    (p) =>
-      String(p?.user?.name || "").trim().toLowerCase() ===
-      String(user.name || "").trim().toLowerCase()
-  );
+  const allPosts = loadAllPosts();
+
+// match por email (preferido) o por nombre (seed viejo no trae email)
+  const posts = allPosts.filter((p: any) => {
+  const byEmail = p?.user?.email && user.email && String(p.user.email).toLowerCase() === String(user.email).toLowerCase();
+  const byName  = String(p?.user?.name || "").trim().toLowerCase() === String(user.name || "").trim().toLowerCase();
+  return byEmail || byName;
+  });
+
 
   return (
     <section className="w-full bg-[#F4F7FB]">

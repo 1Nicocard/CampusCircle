@@ -1,19 +1,31 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "../../Components/Card";
 import { Button } from "../../Components/Button";
 import star from "../../Assets/Star.png";
+import mockData from "../../Data/mockData.json";
 
 function Feed() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  type Attachment = { name: string; type: string; url: string };
+  type PostType = { id: string | number; user: { name: string; avatar?: string; semester?: string }; category?: string; title?: string; content?: string; attachments?: Attachment[] };
+  const [posts, setPosts] = useState<PostType[]>([]);
   type Category = "All" | "Art" | "Literature" | "Math" | "Science" | "Social";
   const [selectedCats, setSelectedCats] = useState<Category[]>(["All"]);
-  const [posts, setPosts] = useState<any[]>([]);
 
   // Cargar posts desde localStorage al montar
   useEffect(() => {
-    const storedPosts = JSON.parse(localStorage.getItem("posts") || "[]");
-    setPosts(storedPosts);
-  }, []);
+  const stored = JSON.parse(localStorage.getItem("posts") || "[]");
+  if (stored.length > 0) {
+    setPosts(stored);
+    return;
+  }
+  // seed inicial con mockData
+  const seeded = Array.isArray(mockData) ? mockData : (mockData as any)?.posts || [];
+  localStorage.setItem("posts", JSON.stringify(seeded));
+  setPosts(seeded);
+}, []);
 
   // Actualizar posts si hay cambios en localStorage
   useEffect(() => {
@@ -52,6 +64,7 @@ function Feed() {
           </h1>
           <Button
             variant="hero"
+            onClick={() => navigate('/feed/create-post')}
             className="mt-8 sm:mt-12 md:mt-16 lg:mt-20 bg-white text-[#0077FF] border-2 border-[#0077FF]
             hover:bg-gradient-to-r hover:from-[#74EBD5] hover:to-[#9FACE6]
             hover:text-white hover:border-transparent transition-all duration-300"
@@ -150,7 +163,7 @@ function Feed() {
 
                 {/* Archivos adjuntos */}
                 <div className="flex flex-wrap gap-4 mt-10">
-                  {attachments.map((file: any, index: number) => (
+                  {(attachments || []).map((file: Attachment, index: number) => (
                     <a
                       key={index}
                       href={file.url}

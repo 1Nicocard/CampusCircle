@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import { Button } from "../../Components/Button";
 import { Trash2 } from "lucide-react";
-import usersData from "../../Data/users.json";
+import usersData from "../../Data/users.json"; // <-- fallback si no hay sesión (ok)
+import { getCurrentUser } from "../../lib/auth";
+
 
 export default function Post() {
   const subjects = ["Design", "Literature", "Math", "Science", "Social"];
@@ -55,9 +57,8 @@ export default function Post() {
       return;
     }
 
-    const currentUser =
-      JSON.parse(localStorage.getItem("currentUser") || "null") ||
-      usersData.users[0];
+    const currentUser = getCurrentUser() || usersData.users[0]; // fallback: Sergio del seed
+
 
     const now = new Date();
     const newPost = {
