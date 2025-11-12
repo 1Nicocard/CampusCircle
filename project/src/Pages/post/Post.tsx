@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import { Button } from "../../Components/Button";
 import { Trash2 } from "lucide-react";
-import usersData from "../../Data/users.json";
+import usersData from "../../Data/users.json"; // <-- fallback si no hay sesión (ok)
+import { getCurrentUser } from "../../lib/auth";
+
 
 export default function Post() {
   const subjects = ["Design", "Literature", "Math", "Science", "Social"];
@@ -55,28 +57,34 @@ export default function Post() {
       return;
     }
 
-    const currentUser =
-      JSON.parse(localStorage.getItem("currentUser") || "null") ||
-      usersData.users[0];
+    const currentUser = getCurrentUser() || usersData.users[0]; // fallback: Sergio del seed
+
 
     const now = new Date();
+    // Normalize post shape to match Feed/postStore expectations
     const newPost = {
       id: Date.now(),
       user: currentUser,
-      date: now.toISOString(),
-      category: selectedSubjects[0] || "General",
-      title: header,
-      content: text,
-      attachments: files.map((f) => ({
-        name: f.name,
-        type: f.name.split(".").pop(),
-        url: URL.createObjectURL(f),
-      })),
+      createdAt: now.toISOString(),
+      tag: selectedSubjects[0] || "General",
+      // combine header and body into content so Feed can extract title
+      content: `${header}\n\n${text}`,
+      files: files.map((f) => ({ id: `f_${Date.now()}_${f.name}`, type: f.name.split('.').pop(), url: URL.createObjectURL(f), label: f.name })),
+      likes: 0,
+      comments: 0,
+      commentsList: [],
+      likedBy: [],
     };
 
-    const existing = JSON.parse(localStorage.getItem("posts") || "[]");
-    const updated = [newPost, ...existing];
-    localStorage.setItem("posts", JSON.stringify(updated));
+    try {
+      const existing = JSON.parse(localStorage.getItem("posts") || "[]");
+      const updated = [newPost, ...existing];
+      localStorage.setItem("posts", JSON.stringify(updated));
+      // also dispatch an update event so Feed refreshes
+      window.dispatchEvent(new CustomEvent('posts:update'));
+    } catch (err) {
+      console.warn('Failed to save post', err);
+    }
 
     alert("✅ Post shared successfully!");
     setHeader("");
