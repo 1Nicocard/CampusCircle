@@ -5,6 +5,7 @@ import star from "../../Assets/Star.png";
 import mockData from "../../Data/mockData.json";
 import { Paperclip } from "lucide-react";
 
+
 function Feed() {
   // crear estado independiente de comentarios por post
   type CommentData = {

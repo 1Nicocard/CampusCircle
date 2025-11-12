@@ -1,10 +1,25 @@
 import { Button } from "../../Components/Button";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { getCurrentUser } from "../../lib/auth";
+
 
 export default function Landing() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const user = getCurrentUser();
+    useEffect(() => {
+        // Only redirect signed-in users when they hit the root landing route
+        if (user && (location.pathname === "/" || location.pathname === "")) {
+            navigate("/feed", { replace: true });
+        }
+    }, [user, navigate, location]);
+
+
     return (
         <section>
-
+            
 
             <section
                 className="relative w-full flex flex-col md:flex-row items-center justify-start bg-cover bg-center pb-32"

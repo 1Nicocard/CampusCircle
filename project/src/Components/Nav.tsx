@@ -1,9 +1,13 @@
 import { useState } from "react";
 import "../styles/Global.css";
 import Logo from "../Assets/Logo completo.png";
+import { useNavigate } from "react-router-dom";
+
 
 const Navbar = () => {
   const [active, setActive] = useState("Home");
+  const navigate = useNavigate();
+
 
   return (
     <header className="w-full fixed top-0 left-0 z-[9999] flex justify-center items-center mt-8 px-4">
@@ -28,7 +32,12 @@ const Navbar = () => {
             {["About", "Home", "Profile"].map((link) => (
               <button
                 key={link}
-                onClick={() => setActive(link)}
+                onClick={() => {
+                              setActive(link);
+                              if (link === "Profile") navigate("/feed/profile");
+                              if (link === "Home") navigate("/feed");
+                              if (link === "About") navigate("/landing");
+                              }}
                 className={`relative ${
                   active === link
                     ? "after:content-[''] after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[3px] after:bg-white"
@@ -124,7 +133,7 @@ const Navbar = () => {
 
             {/* Home */}
             <button
-              onClick={() => setActive("Home")}
+              onClick={() => { setActive("Home"); navigate("/feed"); }}
               className={`transition-all ${
                 active === "Home"
                   ? "stroke-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
@@ -168,13 +177,16 @@ const Navbar = () => {
 
             {/* Profile */}
             <button
-              onClick={() => setActive("Profile")}
-              className={`transition-all ${
-                active === "Profile"
-                  ? "stroke-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
-                  : "stroke-[#4EB2FF]"
-              }`}
-            >
+                onClick={() => {
+                setActive("Profile");
+                navigate("/feed/profile");
+                }}
+                className={`transition-all ${
+                 active === "Profile"
+                 ? "stroke-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
+                 : "stroke-[#4EB2FF]"
+                }`}
+>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-[28px] sm:h-[32px] w-[28px] sm:w-[32px]"

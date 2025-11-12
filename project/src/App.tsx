@@ -9,18 +9,14 @@ import SignUp from "./Pages/auth/SignUp";
 import Feed from "./Pages/feed/Feed";
 import Profile from "./Pages/profile/Profile";
 import CreatePost from "./Pages/post/Post";
+import EditProfile from "./Pages/profile/EditProfile";
 
 import Nav from "./Components/Nav";
 import Footer from "./Components/Footer";
 
 // Layout para páginas privadas
 const FeedLayout: React.FC = () => {
-  const navigate = useNavigate();
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/signin", { replace: true });
-  };
+  
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -64,7 +60,8 @@ export default function App() {
       >
         <Route index element={<Feed />} />                 {/* /feed */}
         <Route path="create-post" element={<CreatePost />} /> {/* /feed/create-post */}
-        <Route path="profile" element={<Profile />} />     {/* /feed/profile */}
+  <Route path="profile" element={<Profile />} />     {/* /feed/profile */}
+  <Route path="profile/edit" element={<EditProfile />} /> {/* /feed/profile/edit */}
       </Route>
 
       {/* Fallback */}
