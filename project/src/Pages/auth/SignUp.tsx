@@ -33,9 +33,11 @@ export default function SignUp(){
       email: email.toLowerCase().trim(),
       major: program.trim() || undefined,
       semester: term.trim() || undefined,
+      institution: institution.trim() || undefined,
     };
-  signUp(u);
-  nav("/feed", { replace: true } );
+    const r = signUp(u, pw.trim());
+    if(!r.ok) return setErr(r.message || "Error");
+    nav("/feed", { replace: true } );
   }
 
   return (
@@ -68,5 +70,6 @@ export default function SignUp(){
     </AuthLayout>
   );
 }
+
 
 
