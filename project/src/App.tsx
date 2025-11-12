@@ -1,6 +1,5 @@
-// src/App.tsx
 import React from "react";
-import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import Loader from "./Pages/loader/Loader";
 import Landing from "./Pages/landing/Landing";
@@ -15,17 +14,14 @@ import Nav from "./Components/Nav";
 import Footer from "./Components/Footer";
 import { getCurrentUser } from "./lib/auth";
 
-// Layout para páginas privadas
 const FeedLayout: React.FC = () => {
-  
-
   return (
     <div className="min-h-screen flex flex-col">
-      <Nav /> {/* Navbar visible */}
+      <Nav />
       <main className="flex-1 mt-[113px]">
-        <Outlet /> {/* Renderiza Feed, Profile o CreatePost */}
+        <Outlet />
       </main>
-      <Footer /> {/* Footer visible */}
+      <Footer />
     </div>
   );
 };
@@ -35,10 +31,10 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Loader - sin Nav ni Footer */}
+      {/* Loader */}
       <Route path="/" element={<Loader />} />
 
-      {/* Landing - Nav y Footer visibles */}
+      {/* Landing */}
       <Route
         path="/landing"
         element={
@@ -50,19 +46,19 @@ export default function App() {
         }
       />
 
-      {/* SignIn y SignUp - sin Nav ni Footer */}
+      {/* Auth */}
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
 
-      {/* Páginas privadas */}
+      {/* Feed layout */}
       <Route
         path="/feed"
         element={user ? <FeedLayout /> : <Navigate to="/signin" replace />}
       >
-        <Route index element={<Feed />} />                 {/* /feed */}
-        <Route path="create-post" element={<CreatePost />} /> {/* /feed/create-post */}
-  <Route path="profile" element={<Profile />} />     {/* /feed/profile */}
-  <Route path="profile/edit" element={<EditProfile />} /> {/* /feed/profile/edit */}
+        <Route index element={<Feed />} />
+        <Route path="create-post" element={<CreatePost />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="profile/edit" element={<EditProfile />} />
       </Route>
 
       {/* Fallback */}
