@@ -3,10 +3,16 @@ import { Button } from "../../Components/Button";
 import { Trash2 } from "lucide-react";
 import usersData from "../../Data/users.json"; // <-- fallback si no hay sesión (ok)
 import { getCurrentUser } from "../../lib/auth";
+import { useDispatch } from 'react-redux'
+import { addPost } from '../../store/postsSlice'
+import type { Post, PostFile } from '../../lib/postStore';
+import type { User } from '../../lib/auth';
+import type { AppDispatch } from '../../store/store';
 
 
 export default function Post() {
   const subjects = ["Design", "Literature", "Math", "Science", "Social"];
+  const dispatch = useDispatch<AppDispatch>();
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [header, setHeader] = useState("");
   const [text, setText] = useState("");
@@ -62,14 +68,22 @@ export default function Post() {
 
     const now = new Date();
     // Normalize post shape to match Feed/postStore expectations
-    const newPost = {
-      id: Date.now(),
-      user: currentUser,
+    const mapType = (name: string | undefined) => {
+      const ext = (name || '').toLowerCase().split('.').pop();
+      if (ext === 'pdf') return 'pdf' as const;
+      if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') return 'img' as const;
+      if (ext === 'doc' || ext === 'docx') return 'doc' as const;
+      return 'other' as const;
+    };
+
+    const newPost: Post = {
+      id: String(Date.now()),
+      user: currentUser as User,
       createdAt: now.toISOString(),
       tag: selectedSubjects[0] || "General",
       // combine header and body into content so Feed can extract title
       content: `${header}\n\n${text}`,
-      files: files.map((f) => ({ id: `f_${Date.now()}_${f.name}`, type: f.name.split('.').pop(), url: URL.createObjectURL(f), label: f.name })),
+      files: files.map((f) => ({ id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: URL.createObjectURL(f), label: f.name } as PostFile)),
       likes: 0,
       comments: 0,
       commentsList: [],
@@ -77,13 +91,17 @@ export default function Post() {
     };
 
     try {
-      const existing = JSON.parse(localStorage.getItem("posts") || "[]");
-      const updated = [newPost, ...existing];
-      localStorage.setItem("posts", JSON.stringify(updated));
-      // also dispatch an update event so Feed refreshes
-      window.dispatchEvent(new CustomEvent('posts:update'));
+      // use redux action to add post and persist via slice
+      dispatch(addPost(newPost));
     } catch (err) {
       console.warn('Failed to save post', err);
+      // fallback to localStorage so UX still works
+      try {
+        const existing = JSON.parse(localStorage.getItem("posts") || "[]");
+        const updated = [newPost, ...existing];
+        localStorage.setItem("posts", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('posts:update'));
+      } catch (err2) { void err2; }
     }
 
     alert("✅ Post shared successfully!");

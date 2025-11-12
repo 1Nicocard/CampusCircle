@@ -16,16 +16,20 @@ import mockData from "../../Data/mockData.json";
 import { getCurrentUser } from "../../lib/auth";
 import {
   getAllPosts,
-  toggleLike,
-  saveAllPosts,
+  // saveAllPosts,
   isLikedByMe,
   type Post as CCPost,
   type PostFile,
 } from "../../lib/postStore";
+import { useSelector, useDispatch } from 'react-redux'
+import type { AppDispatch } from '../../store/store'
+import { selectPosts, toggleLike as toggleLikeAction } from '../../store/postsSlice'
 export default function Feed() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [posts, setPosts] = useState<CCPost[]>([]);
+  const reduxPosts = useSelector(selectPosts) as CCPost[];
+  const dispatch = useDispatch<AppDispatch>();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [draftsAttachments, setDraftsAttachments] = useState<Record<string, PostFile[]>>({});
   type Category = "All" | "Art" | "Literature" | "Math" | "Science" | "Social";
@@ -33,7 +37,7 @@ export default function Feed() {
 
   // Cargar posts desde localStorage al montar y sembrar si está vacío
   useEffect(() => {
-    const refresh = () => setPosts(getAllPosts());
+  const refresh = () => setPosts(getAllPosts());
     // Seed initial posts if none exist
     const existing = getAllPosts();
     if (!existing || existing.length === 0) {
@@ -44,13 +48,15 @@ export default function Feed() {
         localStorage.setItem("posts", JSON.stringify(seeded));
       } catch (err) { void err; }
     }
-    refresh();
+  refresh();
+  // if redux has posts, prefer them
+  if (Array.isArray(reduxPosts) && reduxPosts.length > 0) setPosts(reduxPosts);
 
     // Escuchar actualizaciones globales de posts (likes, nuevos, etc.)
-    const onUpdate = () => refresh();
+  const onUpdate = () => refresh();
     window.addEventListener("posts:update", onUpdate);
     return () => window.removeEventListener("posts:update", onUpdate);
-  }, []);
+  }, [reduxPosts]);
 
   // Filtrado
   const filteredPosts = useMemo(() => {
@@ -223,10 +229,12 @@ export default function Feed() {
                 {/* Reacciones */}
                 <div className="flex items-center gap-4 mt-8">
   {/* LIKE: persistente y sincronizado */}
-  <button
-    onClick={() => {
+    <button
+    onClick={async () => {
       try {
-        const updated = toggleLike(String(post.id));
+        // dispatch thunk to toggle like in postStore and update redux
+  const res = await dispatch(toggleLikeAction(String(post.id)));
+  const updated = (res as unknown as { payload?: CCPost | null })?.payload;
         if (updated) setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       } catch (e) {
         console.warn(e);
@@ -257,7 +265,7 @@ export default function Feed() {
 
                 {/* Comments list */}
                 <div className="mt-6 space-y-4">
-                  {(post.commentsList || []).map((c) => (
+                  {(((post.commentsList ?? []) as Array<{ id: string; text: string; user?: { name?: string; avatar?: string }; createdAt: string; attachments?: PostFile[] }>)).map((c) => (
                     <div key={c.id} className="flex items-start gap-3 bg-[#FBFCFF] rounded-xl p-3">
                       <img src={c.user?.avatar || "/src/Assets/user2.png"} className="w-9 h-9 rounded-full object-cover" />
                       <div>
@@ -266,7 +274,7 @@ export default function Feed() {
                         {/* comment attachments */}
                         {Array.isArray(c.attachments) && c.attachments.length > 0 && (
                           <div className="mt-2 flex gap-3">
-                            {c.attachments.map((a, ai) => (
+                            {c.attachments.map((a: PostFile, ai: number) => (
                               <a key={ai} href={a.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 bg-white border rounded-md">
                                 <img src={a.type === 'pdf' ? 'https://cdn-icons-png.flaticon.com/512/337/337946.png' : 'https://cdn-icons-png.flaticon.com/512/337/337940.png'} className="w-5 h-5" />
                                 <span className="text-sm text-[#565656]">{a.label || String(a.url).split('/').pop()}</span>
@@ -316,11 +324,6 @@ export default function Feed() {
                         const text = (drafts[id] || "").trim();
                         const attachments = draftsAttachments[id] || [];
                         if (!text && attachments.length === 0) return;
-                        // update posts: add comment object with attachments
-                        const all = getAllPosts();
-                        const i = all.findIndex((p) => String(p.id) === String(id));
-                        if (i === -1) return;
-                        const next = [...all];
                         const commenter = getCurrentUser();
                         const newComment = {
                           id: `c_${Date.now()}`,
@@ -329,12 +332,8 @@ export default function Feed() {
                           createdAt: new Date().toISOString(),
                           attachments: attachments.length ? attachments : undefined,
                         };
-                        const existing = Array.isArray(next[i].commentsList) ? [...next[i].commentsList] : [];
-                        const newList = [...existing, newComment];
-                        next[i] = { ...next[i], comments: newList.length, commentsList: newList } as CCPost;
                         try {
-                          saveAllPosts(next);
-                          setPosts(next);
+                          dispatch({ type: 'posts/addComment', payload: { postId: String(id), comment: newComment } });
                           setDrafts((s) => ({ ...s, [id]: "" }));
                           setDraftsAttachments((s) => ({ ...s, [id]: [] }));
                         } catch (err) {
