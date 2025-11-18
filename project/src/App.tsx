@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import Loader from "./Pages/loader/Loader";
@@ -14,7 +14,7 @@ import Nav from "./Components/Nav";
 import Footer from "./Components/Footer";
 import { getCurrentUser } from "./lib/auth";
 
-const FeedLayout: React.FC = () => {
+const FeedLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Nav />
@@ -34,23 +34,14 @@ export default function App() {
       {/* Loader */}
       <Route path="/" element={<Loader />} />
 
-      {/* Landing */}
-      <Route
-        path="/landing"
-        element={
-          <>
-            <Nav />
-            <Landing />
-            <Footer />
-          </>
-        }
-      />
+      {/* Landing SIN NAV, la Nav se controla dentro del componente */}
+      <Route path="/landing" element={<Landing />} />
 
       {/* Auth */}
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
 
-      {/* Feed layout */}
+      {/* Feed */}
       <Route
         path="/feed"
         element={user ? <FeedLayout /> : <Navigate to="/signin" replace />}
