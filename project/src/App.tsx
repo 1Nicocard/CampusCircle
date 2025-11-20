@@ -18,7 +18,7 @@ const FeedLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Nav />
-      <main className="flex-1 mt-[113px]">
+      <main className="flex-1">
         <Outlet />
       </main>
       <Footer />
