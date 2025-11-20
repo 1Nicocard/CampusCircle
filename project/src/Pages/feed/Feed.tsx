@@ -112,7 +112,7 @@ export default function Feed() {
       </div>
 
       {/* Buscador */}
-      <div className="container text-center mb-12">
+      <div className="container text-center mb-10">
         <div className="mx-auto max-w-[760px] mt-6 mb-2">
           <div className="relative">
             <div className="relative h-[48px] bg-[#007CFF] rounded-full border-[2px] border-white flex items-center px-5">
@@ -132,7 +132,7 @@ export default function Feed() {
       </div>
 
       {/* Filtros */}
-      <div className="flex justify-center flex-wrap gap-6 sm:gap-10 mb-8 sm:mb-12 px-4">
+      <div className="flex justify-center flex-wrap gap-6 sm:gap-10 mb-8 sm:mb-20 px-4">
         {(["All", "Design", "Literature", "Math", "Science", "Social"] as const).map((item) => {
           const active = selectedCats.includes(item);
           return (
@@ -151,7 +151,7 @@ export default function Feed() {
                   }
                 });
               }}
-              className={`px-4 sm:px-6 py-1.5 rounded-full border-[2px] outline-none ${active
+              className={`!py-1.5 px-8  rounded-full border-[2px] outline-none ${active
                 ? "bg-[#0066FF] text-white border-[#0066FF] shadow-[0_6px_18px_rgba(0,102,255,0.35)]"
                 : "bg-transparent text-[#2091FF] border-[#2091FF] hover:bg-[#EAF5FF]"
                 }`}
@@ -221,7 +221,7 @@ export default function Feed() {
                 </div>
 
                 {/* Contenido */}
-                <p className="mt-6 sm:mt-8 text-[18px] sm:text-[20px] lg:text-[24px] font-sarala text-[#565656] leading-relaxed whitespace-pre-line">{body}</p>
+                <p className="mt-6 sm:mt-2 text-[18px] sm:text-[20px] lg:text-[24px] font-sarala text-[#565656] leading-relaxed whitespace-pre-line">{body}</p>
 
                 {/* Archivos */}
                 <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8">
@@ -247,7 +247,7 @@ export default function Feed() {
                 </div>
 
                 {/* Like y Comentarios */}
-                <div className="flex items-center gap-3 mt-6 sm:mt-8">
+                <div className="flex items-center gap-3 mt-6 sm:mt-12">
                   <button
                     onClick={async () => {
                       try {
@@ -256,12 +256,12 @@ export default function Feed() {
                         if (updated) setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
                       } catch { }
                     }}
-                    className="inline-flex items-center gap-2 px-4 sm:px-5 h-[34px] sm:h-[42px] rounded-full border bg-[#F1F4F9] border-[#E6E8EE] text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95"
+                    className="inline-flex items-center gap-2 px-2 sm:px-4 h-[34px] sm:h-[42px] rounded-full border bg-[#F1F4F9] border-[#E6E8EE] text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95"
                   >
                     <img
                       src={isLikedByMe(post) ? "/src/Assets/like-red.png" : "/src/Assets/like.svg"}
                       alt="like"
-                      className="w-5 sm:w-6 lg:w-7 h-5 sm:h-6 lg:h-7"
+                      className="w-5 sm:w-5 lg:w-5 h-5 sm:h-5 lg:h-5"
                     />
                     <span className="text-[#667085] text-[14px] sm:text-[16px] lg:text-[18px]">{post.likes ?? 0}</span>
                   </button>
@@ -271,10 +271,10 @@ export default function Feed() {
                       const el = document.getElementById(`attach-${id}`);
                       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }}
-                    className="inline-flex items-center gap-2 px-4 sm:px-5 h-[34px] sm:h-[42px] rounded-full border text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95 bg-[#F1F4F9] border-[#E6E8EE]"
+                    className="inline-flex items-center gap-2 px-2 sm:px-4 h-[34px] sm:h-[42px] rounded-full border text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95 bg-[#F1F4F9] border-[#E6E8EE]"
                     title="Comments"
                   >
-                    <img src={commentIcon} alt="comments" className="w-5 sm:w-6 lg:w-7 h-5 sm:h-6 lg:h-7 opacity-80" />
+                    <img src={commentIcon} alt="comments" className="w-5 sm:w-6 lg:w-6 h-5 sm:h-6 lg:h-6 opacity-80" />
                     <span className="text-[#667085] text-[14px] sm:text-[16px] lg:text-[18px]">{post.comments ?? 0}</span>
                   </button>
                 </div>
@@ -285,94 +285,158 @@ export default function Feed() {
                 <div className="mt-4 sm:mt-6">
                   <div className="bg-white rounded-2xl p-4 flex flex-col gap-3">
 
-                    {/* Input con avatar */}
-                    <div className="flex items-center gap-3 w-full">
+                    {/* 🟦 INPUT + BOTONES (en desktop están dentro — en móvil fuera) */}
+                    <div className="flex items-center gap-3 w-full relative">
+
+                      {/* Avatar */}
                       <img
                         src={getCurrentUser()?.avatar || "/src/Assets/user2.png"}
                         className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                         alt="you"
                       />
+
+                      {/* Input con espacio para los botones */}
                       <input
                         placeholder="Write a comment..."
                         value={drafts[id] || ""}
-                        onChange={(e) => setDrafts((s) => ({ ...s, [id]: e.target.value }))}
-                        className="flex-1 border border-[#E6E8EE] rounded-full px-4 py-3 text-[18px] sm:text-[24px] outline-none w-full"
+                        onChange={(e) =>
+                          setDrafts((s) => ({ ...s, [id]: e.target.value }))
+                        }
+                        className="
+          flex-1 border border-[#E6E8EE] rounded-full px-4 py-4
+          text-[14px] sm:text-[18px] outline-none w-full
+          pr-[120px]         /* 🟦 espacio para botones dentro del input */
+          sm:pr-[0px]        /* 🟧 en móvil NO deja espacio — botones bajan */
+        "
                       />
+
+                      {/* 🟦 Botones dentro del input (solo desktop/tablet) */}
+                      <div className="
+        hidden sm:flex         /* solo se muestra en >= sm */
+        items-center gap-3
+        absolute right-4
+      ">
+                        {/* File input (hidden) */}
+                        <input
+                          id={`attach-${id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files && e.target.files[0];
+                            if (!f) return;
+                            const url = URL.createObjectURL(f);
+                            const fileShape: PostFile = {
+                              id: `f_${Date.now()}`,
+                              type: f.type.includes("pdf") ? "pdf" : "img",
+                              url,
+                              label: f.name,
+                            };
+                            setDraftsAttachments((s) => ({
+                              ...s,
+                              [id]: [...(s[id] || []), fileShape],
+                            }));
+                            (e.target as HTMLInputElement).value = "";
+                          }}
+                        />
+
+                        {/* Clip inside input */}
+                        <button
+                          onClick={() =>
+                            document.getElementById(`attach-${id}`)?.click()
+                          }
+                          className="w-10 h-10 flex items-center justify-center rounded-full border border-[#ececec] bg-white"
+                        >
+                          <img src={clipIcon} className="w-6 h-6" />
+                        </button>
+
+                        {/* Post inside input */}
+                        <button
+                          onClick={() => {
+                            const textVal = (drafts[id] || "").trim();
+                            const attachmentsVal = draftsAttachments[id] || [];
+
+                            const commenter = getCurrentUser();
+                            const newComment = {
+                              id: `c_${Date.now()}`,
+                              text: textVal,
+                              user: commenter
+                                ? { name: commenter.name, avatar: commenter.avatar }
+                                : undefined,
+                              createdAt: new Date().toISOString(),
+                              attachments: attachmentsVal.length
+                                ? attachmentsVal
+                                : undefined,
+                            };
+
+                            try {
+                              dispatch({
+                                type: "posts/addComment",
+                                payload: { postId: String(id), comment: newComment },
+                              });
+                              setDrafts((s) => ({ ...s, [id]: "" }));
+                              setDraftsAttachments((s) => ({
+                                ...s,
+                                [id]: [],
+                              }));
+                            } catch { }
+                          }}
+                          className="px-5 py-2 rounded-full bg-[#1E90FF] text-white text-[18px] font-medium"
+                        >
+                          Post
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Botones debajo del input */}
-                    <div className="flex gap-3 justify-end flex-wrap w-full">
-                      {/* File input (hidden) */}
-                      <input
-                        id={`attach-${id}`}
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files && e.target.files[0];
-                          if (!f) return;
-                          const url = URL.createObjectURL(f);
-                          const fileShape: PostFile = {
-                            id: `f_${Date.now()}`,
-                            type: f.type.includes('pdf') ? 'pdf' : 'img',
-                            url,
-                            label: f.name,
-                          };
-                          setDraftsAttachments((s) => ({ ...s, [id]: [...(s[id] || []), fileShape] }));
-                          (e.target as HTMLInputElement).value = '';
-                        }}
-                      />
-
-                      {/* Attach button */}
+                    {/* 🟧 Botones móviles — debajo y centrados */}
+                    <div className="
+      sm:hidden               /* solo móvil */
+      flex justify-center gap-4 mt-3
+    ">
                       <button
-                        onClick={() => document.getElementById(`attach-${id}`)?.click()}
-                        className="w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-full bg-white border border-[#E6E8EE]"
-                        title="Attach file"
-                        aria-label="Attach file"
-                        type="button"
+                        onClick={() =>
+                          document.getElementById(`attach-${id}`)?.click()
+                        }
+                        className="w-12 h-12 flex items-center justify-center rounded-full border border-[#ececec] bg-white"
                       >
-                        <img src={clipIcon} alt="Attach" className="w-6 h-6" />
+                        <img src={clipIcon} className="w-6 h-6" />
                       </button>
 
-                      {/* Post button */}
-                      {(() => {
-                        const text = (drafts[id] || "").trim();
-                        const attachments = draftsAttachments[id] || [];
-                        const canPost = text.length > 0 || attachments.length > 0;
-                        return (
-                          <button
-                            onClick={() => {
-                              if (!canPost) return;
-                              const textVal = (drafts[id] || "").trim();
-                              const attachmentsVal = draftsAttachments[id] || [];
-                              const commenter = getCurrentUser();
-                              const newComment = {
-                                id: `c_${Date.now()}`,
-                                text: textVal,
-                                user: commenter ? { name: commenter.name, avatar: commenter.avatar } : undefined,
-                                createdAt: new Date().toISOString(),
-                                attachments: attachmentsVal.length ? attachmentsVal : undefined,
-                              };
-                              try {
-                                dispatch({ type: 'posts/addComment', payload: { postId: String(id), comment: newComment } });
-                                setDrafts((s) => ({ ...s, [id]: "" }));
-                                setDraftsAttachments((s) => ({ ...s, [id]: [] }));
-                              } catch { }
-                            }}
-                            className={`px-6 py-3 rounded-full font-medium text-[18px] sm:text-[24px]
-                            ${canPost
-                                ? "bg-[#1E90FF] text-white"
-                                : "bg-[#F3F6FB] text-[#9BB7EA] cursor-not-allowed opacity-70"
-                              }`}
-                            aria-disabled={!canPost}
-                            type="button"
-                          >
-                            Post
-                          </button>
-                        );
-                      })()}
+                      <button
+                        onClick={() => {
+                          const textVal = (drafts[id] || "").trim();
+                          const attachmentsVal = draftsAttachments[id] || [];
+
+                          const commenter = getCurrentUser();
+                          const newComment = {
+                            id: `c_${Date.now()}`,
+                            text: textVal,
+                            user: commenter
+                              ? { name: commenter.name, avatar: commenter.avatar }
+                              : undefined,
+                            createdAt: new Date().toISOString(),
+                            attachments: attachmentsVal.length
+                              ? attachmentsVal
+                              : undefined,
+                          };
+
+                          try {
+                            dispatch({
+                              type: "posts/addComment",
+                              payload: { postId: String(id), comment: newComment },
+                            });
+                            setDrafts((s) => ({ ...s, [id]: "" }));
+                            setDraftsAttachments((s) => ({ ...s, [id]: [] }));
+                          } catch { }
+                        }}
+                        className="px-6 py-2 rounded-full bg-[#1E90FF] text-white text-[18px] font-medium"
+                      >
+                        Post
+                      </button>
                     </div>
+
                   </div>
                 </div>
+
                 {/* Comentarios */}
                 <div className="mt-4 sm:mt-6 space-y-4">
                   {(post.commentsList ?? []).map((c) => (
