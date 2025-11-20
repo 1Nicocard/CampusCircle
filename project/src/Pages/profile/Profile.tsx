@@ -1,5 +1,4 @@
 // src/Pages/profile/Profile.tsx
-// src/Pages/profile/Profile.tsx
 import { Link } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { getCurrentUser } from "../../lib/auth";
@@ -9,9 +8,8 @@ import {
   isLikedByMe,
   type Post as FullPost,
   type PostFile,
-} from "../../lib/postStore"; // nuevo archivo que gestiona likes persistentes
+} from "../../lib/postStore";
 
-// Iconos: map tags to local assets
 const tagIcons: Record<string, string> = {
   Design: "/src/Assets/design.svg",
   Literature: "/src/Assets/literature.svg",
@@ -22,7 +20,6 @@ const tagIcons: Record<string, string> = {
 };
 
 const iconComment = "/src/Assets/comment.png";
-
 import icInstitution from "../../Assets/icons/academicicon.svg";
 import icProgram from "../../Assets/icons/programicon.svg";
 import icTerm from "../../Assets/icons/calendaricon.svg";
@@ -36,7 +33,6 @@ export default function Profile() {
   const refresh = useCallback(() => {
     if (!user) return setPosts([]);
     const all = getAllPosts();
-    // Filtra los posts del usuario actual
     const mine = all.filter((p) => {
       const byEmail =
         p?.user?.email &&
@@ -61,13 +57,13 @@ export default function Profile() {
   if (!user) {
     return (
       <section className="container py-24">
-        <p className="text-center text-[18px] text-[#565C66]">
+        <p className="text-center text-[18px] sm:text-[20px] text-[#565656]">
           Please sign in.
         </p>
         <div className="text-center mt-4">
           <Link
             to="/signin"
-            className="text-[#1E90FF] font-bold hover:underline"
+            className="text-[#0077FF] font-bold hover:underline"
           >
             Go to Sign In
           </Link>
@@ -79,15 +75,14 @@ export default function Profile() {
   return (
     <section className="w-full bg-[#F4F7FB]">
       <div className="container pt-40 md:pt-44 pb-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
           <img
             src={user?.avatar || "/src/Assets/Foto user.jpg"}
             alt="Profile picture"
-            className="w-20 h-20 md:w-20 md:h-20 rounded-full object-cover border-2 border-blue-400 mx-auto md:mx-0"
+            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-2 border-[#0077FF] mx-auto md:mx-0"
           />
-
           <div className="text-center md:text-left">
-            <h1 className="font-satoshi font-bold text-[34px] md:text-[54px] leading-tight text-[#1E90FF]">
+            <h1 className="font-satoshi font-bold text-[34px] sm:text-[42px] md:text-[54px] leading-tight text-[#0077FF]">
               {user.name || "Your name"}
             </h1>
           </div>
@@ -96,40 +91,42 @@ export default function Profile() {
 
       <div className="container pb-20">
         <div className="grid grid-cols-12 gap-6">
-          {/* ===== LEFT: About me ===== */}
-          <aside className="col-span-12 lg:col-span-4">
-            <div className="bg-white rounded-[22px] border border-[#E6E8EE] shadow-[0_8px_24px_rgba(24,72,167,.10)] p-7">
-              <h2 className="text-[26px] font-satoshi font-bold text-[#222] mb-3">
-                About me
-              </h2>
-              <div className="h-[1px] bg-gradient-to-r from-transparent via-[#E6E8EE] to-transparent mb-4" />
-              <ul className="space-y-5 text-[15px] md:text-[16px]">
-                <AboutRow
-                  icon={icInstitution}
-                  label="Institution"
-                  value={"Icesi"}
-                />
-                <AboutRow
-                  icon={icProgram}
-                  label="Study Program"
-                  value={user.major || "Interactive Media Design"}
-                />
-                <AboutRow
-                  icon={icTerm}
-                  label="Term"
-                  value={user.semester || "5th Semester"}
-                />
-              </ul>
+       <aside className="col-span-12 lg:col-span-4">
+  <div className="bg-white rounded-2xl border border-[#E6E8EE] shadow-md p-6 sm:p-8">
+    <h2 className="text-[20px] md:text-[32px] font-satoshi font-bold text-[#454545] mb-5">
+      About me
+    </h2>
 
-              <Link
-                to="/feed/profile/edit"
-                className="mt-6 inline-flex items-center justify-center w-full h-[44px] rounded-full
-                           bg-[#1E90FF] text-white font-ABeeZee text-[16px] hover:bg-[#1478E9] transition"
-              >
-                Edit profile
-              </Link>
-            </div>
-          </aside>
+    <div className="h-[1px] bg-[#E6E8EE] mb-6" />
+
+    <ul className="space-y-5 text-[18px] md:text-[24px] text-[#565C66]">
+      <AboutRow
+        icon={icInstitution}
+        label="Institution"
+        value={"Icesi"}
+      />
+      <AboutRow
+        icon={icProgram}
+        label="Study Program"
+        value={user.major || "Interactive Media Design"}
+      />
+      <AboutRow
+        icon={icTerm}
+        label="Term"
+        value={user.semester || "5th Semester"}
+      />
+    </ul>
+
+    <Link
+      to="/feed/profile/edit"
+      className="mt-6 inline-flex items-center justify-center w-full h-[44px] rounded-full
+                 bg-[#0077FF] text-white font-sarala text-[16px] sm:text-[18px] hover:bg-[#0055CC] transition"
+    >
+      Edit profile
+    </Link>
+  </div>
+</aside>
+
 
           {/* ===== RIGHT: POSTS ===== */}
           <main className="col-span-12 lg:col-span-8 space-y-5">
@@ -146,7 +143,7 @@ export default function Profile() {
                 />
               ))
             ) : (
-              <div className="bg-white rounded-[22px] border border-[#E6E8EE] shadow-[0_8px_24px_rgba(24,72,167,.10)] p-8 text-center">
+              <div className="bg-white rounded-2xl border border-[#E6E8EE] shadow-md p-8 text-center">
                 <p className="text-[#667085]">No posts yet.</p>
               </div>
             )}
@@ -169,17 +166,17 @@ function AboutRow({
   value: string;
 }) {
   return (
-    <li className="flex items-start gap-3">
-      <img src={icon} className="w-5 h-5 opacity-70 mt-[2px]" />
+    <li className="flex items-center gap-3">
+      <img src={icon} className="w-5 h-5 opacity-70" />
       <div>
-        <b className="text-[#2B2F36]">{label}:</b>{" "}
-        <span className="text-[#565C66]">{value}</span>
+        <b className="text-[#454545]">{label}:</b>{" "}
+        <span className="text-[#565656]">{value}</span>
       </div>
     </li>
   );
 }
 
-/* ---------- Mini Card de Post (según imagen) ---------- */
+/* ---------- Mini Card de Post ---------- */
 
 function MiniPostCard({
   post,
@@ -190,7 +187,7 @@ function MiniPostCard({
 }) {
   const liked = isLikedByMe(post);
   const date = post.createdAt ? new Date(post.createdAt) : new Date();
-  const dateStr = new Intl.DateTimeFormat("en-GB").format(date);
+  const dateStr = date.toLocaleDateString();
 
   const handleLike = () => {
     try {
@@ -204,14 +201,14 @@ function MiniPostCard({
   const spark = "/src/Assets/icons/spark.svg";
 
   return (
-    <article className="bg-white rounded-[22px] border border-[#E6E8EE] shadow-[0_8px_24px_rgba(24,72,167,.10)] p-6 md:p-7">
+    <article className="bg-white rounded-2xl border border-[#E6E8EE] shadow-md p-6 sm:p-8">
       {/* Top Row */}
       <div className="flex items-start justify-between gap-4">
-        <h3 className="flex items-center gap-2 text-[18px] md:text-[20px] font-satoshi font-bold text-[#2B2F36]">
-          <img src={spark} className="inline-block w-2.5 h-2.5" alt="spark" />
+        <h3 className="flex items-center gap-2 text-[20px] sm:text-[24px] font-satoshi font-bold text-[#454545]">
+          <img src={spark} className="inline-block w-4 h-4" alt="spark" />
           {post.content || "Untitled post"}
         </h3>
-        <time className="text-[13px] md:text-[14px] text-[#8B94A5] whitespace-nowrap">
+        <time className="text-[13px] sm:text-[14px] text-[#8C8C8C] whitespace-nowrap">
           {dateStr}
         </time>
       </div>
@@ -219,45 +216,42 @@ function MiniPostCard({
       {/* Chips row */}
       <div className="mt-4 flex flex-wrap items-center gap-3">
         {/* Tag */}
-  <Chip icon={tagIcons[post.tag || "Default"]}>{post.tag || "Design"}</Chip>
+        <Chip icon={tagIcons[post.tag || "Default"]}>{post.tag || "Design"}</Chip>
 
         {/* Like */}
         <button
           onClick={handleLike}
-          className={`inline-flex items-center gap-2 px-3 h-[34px] rounded-full border text-[14px] transition-transform active:scale-95 ${
+          className={`inline-flex items-center gap-2 px-4 h-[36px] rounded-full border text-[16px] sm:text-[18px] transition-transform active:scale-95 ${
             liked
-              ? "bg-[#FFF4F4] border-red-200"
-              : "bg-[#F1F4F9] border-[#E6E8EE]"
+              ? "bg-[#FFF4F4] border-red-200 text-[#DC2626]"
+              : "bg-[#F1F4F9] border-[#E6E8EE] text-[#667085]"
           }`}
         >
-            <img src="/src/Assets/like.svg" alt="like" className={`w-4 h-4 ${liked ? "opacity-100" : "opacity-60"}`} />
-          <span
-            className={
-              liked ? "text-[#DC2626] font-medium" : "text-[#667085]"
-            }
-          >
-            {post.likes ?? 0}
-          </span>
+          <img
+            src="/src/Assets/like.svg"
+            alt="like"
+            className={`w-5 h-5 ${liked ? "opacity-100" : "opacity-60"}`}
+          />
+          <span>{post.likes ?? 0}</span>
         </button>
 
         {/* Comments */}
-  <Chip icon={iconComment}>{post.comments ?? 0}</Chip>
+        <Chip icon={iconComment}>{post.comments ?? 0}</Chip>
 
         {/* Attachments */}
-  {(post.files || []).map((file: PostFile, i: number) => (
-            <Chip key={i}>
-              <img
-                src={
-                  file.type === "pdf"
-                    ? "https://cdn-icons-png.flaticon.com/512/337/337946.png"
-                    : "https://cdn-icons-png.flaticon.com/512/337/337940.png"
-                }
-                alt={file.type}
-                className="w-5 h-5"
-              />
-            </Chip>
-          )
-        )}
+        {(post.files || []).map((file: PostFile, i: number) => (
+          <Chip key={i}>
+            <img
+              src={
+                file.type === "pdf"
+                  ? "https://cdn-icons-png.flaticon.com/512/337/337946.png"
+                  : "https://cdn-icons-png.flaticon.com/512/337/337940.png"
+              }
+              alt={file.type}
+              className="w-5 h-5"
+            />
+          </Chip>
+        ))}
       </div>
     </article>
   );
@@ -271,7 +265,7 @@ function Chip({
   icon?: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-2 px-3 h-[34px] rounded-full bg-[#F1F4F9] text-[#667085] text-[14px] border border-[#E6E8EE]">
+    <span className="inline-flex items-center gap-2 px-4 h-[36px] rounded-full bg-[#F1F4F9] text-[#667085] text-[16px] sm:text-[18px] border border-[#E6E8EE]">
       {icon && <img src={icon} className="w-4 h-4 opacity-80" />}
       {children}
     </span>

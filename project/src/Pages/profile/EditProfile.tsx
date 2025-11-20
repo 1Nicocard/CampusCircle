@@ -41,7 +41,7 @@ export default function EditProfile() {
       major: program.trim(),
       avatar: avatar?.trim() || undefined,
     });
-  nav("/feed/profile");
+    nav("/feed/profile");
   }
 
   function triggerFile() {
@@ -62,7 +62,7 @@ export default function EditProfile() {
 
   return (
     <section className="w-full bg-[#F4F7FB]">
-      <div className="h-28" />
+      <div className="h-20 lg:h-64" /> {/* ✨ CAMBIO FINAL: h-20 para móvil, lg:h-64 para desktop */}
 
       <div className="container pb-20">
         <div className="grid grid-cols-12 gap-6">
@@ -196,4 +196,3 @@ function Field({
     </label>
   );
 }
-
