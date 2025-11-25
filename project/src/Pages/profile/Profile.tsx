@@ -288,9 +288,10 @@ function MiniPostCard({
       {/* Top Row */}
       <div className="flex items-start justify-between gap-4">
         <h3 className="flex items-center gap-2 text-[20px] sm:text-[24px] font-satoshi font-bold text-[#454545]">
-          <img src={spark} className="inline-block w-4 h-4" alt="spark" />
-          {post.content || "Untitled post"}
-        </h3>
+  <img src={spark} className="inline-block w-4 h-4" alt="spark" />
+  {(post.content || "Untitled post").split("\n")[0]}
+</h3>
+
         <time className="text-[13px] sm:text-[14px] text-[#8C8C8C] whitespace-nowrap">
           {dateStr}
         </time>
@@ -302,21 +303,21 @@ function MiniPostCard({
         <Chip icon={tagIcons[post.tag || "Default"]}>{post.tag || "Design"}</Chip>
 
         {/* Like */}
-        <button
-          onClick={handleLike}
-          className={`inline-flex items-center gap-2 px-4 h-[36px] rounded-full border text-[16px] sm:text-[18px] transition-transform active:scale-95 ${
-            liked
-              ? "bg-[#FFF4F4] border-red-200 text-[#DC2626]"
-              : "bg-[#F1F4F9] border-[#E6E8EE] text-[#667085]"
-          }`}
-        >
-          <img
-            src="/src/Assets/like.svg"
-            alt="like"
-            className={`w-5 h-5 ${liked ? "opacity-100" : "opacity-60"}`}
-          />
-          <span>{post.likes ?? 0}</span>
-        </button>
+       
+<button
+  onClick={handleLike}
+  className="inline-flex items-center gap-2 px-2 sm:px-4 h-[34px] sm:h-[42px] rounded-full border bg-[#F1F4F9] border-[#E6E8EE] text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95"
+>
+  <img
+    src={liked ? "/src/Assets/like-red.png" : "/src/Assets/like.svg"}
+    alt="like"
+    className="w-5 sm:w-5 lg:w-5 h-5 sm:h-5 lg:h-5"
+  />
+  <span className="text-[#667085] text-[14px] sm:text-[16px] lg:text-[18px]">
+    {post.likes ?? 0}
+  </span>
+</button>
+
 
         {/* Comments */}
         <Chip icon={iconComment}>{post.comments ?? 0}</Chip>
