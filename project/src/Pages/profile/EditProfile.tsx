@@ -2,7 +2,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getCurrentUser, updateProfile, signOut } from "../../lib/auth";
+import { updateProfile as updateProfileLocal } from "../../lib/auth";
+import { updateProfileInSupabase } from "../../lib/supabaseApi";
+import { useAuth } from "../../lib/AuthProvider";
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../store/store';
+import { updatePostsUserInfo } from '../../store/postsSlice';
 
 // ICONOS monoline (SVG) exportados desde Figma
 import icInstitution from "../../Assets/icons/academicicon.svg";
@@ -15,7 +20,9 @@ import icPencil from "../../Assets/icons/pencilicon.svg";
 
 export default function EditProfile() {
   const nav = useNavigate();
-  const u = getCurrentUser();
+  const { user: authUser, signOut, refreshUser } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const u = authUser || undefined;
 
   // ----- state (always call hooks) -----
   const [name, setName] = useState(u?.name || "");
@@ -27,21 +34,75 @@ export default function EditProfile() {
   const [avatar, setAvatar] = useState(u?.avatar || "");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const avatarPreview = useMemo(() => (avatar?.trim() ? avatar : "/src/Assets/Foto user.jpg"), [avatar]);
+  const avatarPreview = useMemo(() => (avatar?.trim() ? avatar : "/src/Assets/defaultuser.png"), [avatar]);
 
   useEffect(() => { if (!u) nav("/signin"); }, [u, nav]);
   if (!u) return null;
 
   // ----- handlers -----
-  function onSave(e: FormEvent) {
+  async function onSave(e: FormEvent) {
     e.preventDefault();
-    updateProfile({
-      name: name.trim(),
-      semester: term.trim(),
-      major: program.trim(),
-      avatar: avatar?.trim() || undefined,
-    });
-    nav("/feed/profile");
+    
+    if (!authUser?.id) {
+      console.error('Cannot save profile: user not authenticated');
+      alert('You must be signed in to save profile changes');
+      return;
+    }
+
+    // update both Supabase (if configured) and local fallback
+    const payload = {
+      username: name.trim(),
+      term: term.trim(),
+      career: program.trim(),
+      avatar: avatar?.trim() || undefined, // include avatar URL if present
+    };
+    
+    try {
+      console.log('Saving profile to Supabase:', payload);
+      
+      // Save to Supabase
+      const result = await updateProfileInSupabase(authUser.id, payload as any);
+      console.log('Profile update result:', result);
+      
+      if (!result) {
+        throw new Error('Profile update returned null');
+      }
+      
+      // Update local fallback
+      try { 
+        updateProfileLocal({ 
+          name: name.trim(), 
+          semester: term.trim(), 
+          major: program.trim(), 
+          avatar: avatar?.trim() || undefined 
+        }); 
+      } catch (e) { 
+        console.warn('Local update failed:', e);
+      }
+      
+      // Refresh auth context so Profile page shows updated data
+      console.log('Refreshing user context...');
+      await refreshUser();
+      console.log('User context refreshed successfully');
+      
+      // Update all posts in Redux with new user info
+      console.log('Updating posts with new user info...');
+      dispatch(updatePostsUserInfo({
+        userId: authUser.id,
+        username: name.trim(),
+        career: program.trim(),
+        term: term.trim(),
+        avatar: avatar?.trim() || '/src/Assets/defaultuser.png'
+      }));
+      console.log('Posts updated in Redux store');
+      
+      // Navigate after all operations complete
+      console.log('Navigating to /feed/profile...');
+      nav("/feed/profile");
+    } catch (error) { 
+      console.error('Save failed with error:', error);
+      alert(`Failed to save profile: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   function triggerFile() {
@@ -51,13 +112,39 @@ export default function EditProfile() {
   function onFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
+    
+    // Show preview immediately
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
       setAvatar(dataUrl);
-      updateProfile({ avatar: dataUrl });
     };
     reader.readAsDataURL(f);
+
+    // Upload to Supabase Storage in the background
+    (async () => {
+      try {
+        if (authUser?.id) {
+          console.log('Uploading avatar to Supabase Storage...');
+          const { uploadAvatar } = await import('../../lib/supabaseApi');
+          const avatarUrl = await uploadAvatar(f, authUser.id);
+          
+          if (avatarUrl) {
+            console.log('Avatar uploaded successfully:', avatarUrl);
+            // Update the avatar URL in state
+            setAvatar(avatarUrl);
+            // Update in local storage as fallback
+            try { updateProfileLocal({ avatar: avatarUrl }); } catch (e) { void e; }
+          } else {
+            console.warn('Avatar upload returned null - check Supabase Storage bucket');
+            alert('Failed to upload avatar. Make sure the "avatars" bucket exists in Supabase Storage.');
+          }
+        }
+      } catch (e) { 
+        console.error('Failed to upload avatar:', e);
+        alert('Error uploading avatar: ' + (e instanceof Error ? e.message : String(e)));
+      }
+    })();
   }
 
   return (
@@ -130,7 +217,7 @@ export default function EditProfile() {
                   </button>
                   <Link
                     to="/signin"
-                    onClick={() => signOut()}
+                    onClick={() => void signOut()}
                     className="px-8 h-[44px] rounded-full border-2 border-[#1E90FF] text-[#1E90FF] font-ABeeZee text-[16px] hover:bg-blue-50 transition text-center flex items-center justify-center"
                   >
                     Log out

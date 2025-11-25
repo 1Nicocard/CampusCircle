@@ -1,14 +1,14 @@
 import { Button } from "../../Components/Button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { getCurrentUser } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthProvider";
 import Nav from "../../Components/Nav"; 
 import Footer from "../../Components/Footer";
 
 export default function Landing() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = getCurrentUser();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user && (location.pathname === "/" || location.pathname === "")) {

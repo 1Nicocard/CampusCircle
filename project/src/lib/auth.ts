@@ -51,6 +51,23 @@ export function getCurrentUser(): User | null {
   return users.find(u => u.email === session.email) || null;
 }
 
+// For compatibility with external auth providers (Supabase), allow setting
+// the current session/user from outside this module. This will ensure
+// legacy code that relies on `getCurrentUser()` continues to work.
+export function setSessionUser(user: Partial<User>) {
+  if (!user || !user.email) return;
+  const users = loadUsers();
+  const existing = users.find(u => u.email.toLowerCase() === user.email!.toLowerCase());
+  const merged: User = existing
+    ? { ...existing, ...user }
+    : ({ id: user.id || `u_${Date.now()}`, name: (user.name as string) || (user.email as string), email: user.email as string, avatar: user.avatar, major: user.major, semester: user.semester } as User);
+
+  // upsert
+  const updated = [merged, ...users.filter(u => u.email.toLowerCase() !== user.email!.toLowerCase())];
+  saveUsers(updated);
+  setSession(merged);
+}
+
 // Inicia sesión con email + contraseña
 export function signIn(email: string, password: string): { ok: boolean; message?: string } {
   const users = loadUsers();

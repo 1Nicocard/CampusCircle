@@ -10,11 +10,11 @@ const Navbar = () => {
 
   // 🔹 Actualiza la pestaña activa según la ruta
   useEffect(() => {
-    if (location.pathname.startsWith("/feed/profile")) {
+    if (location.pathname.startsWith("/profile") || location.pathname.startsWith("/feed/profile")) {
       setActive("Profile");
-    } else if (location.pathname.startsWith("/feed/create-post")) {
+    } else if (location.pathname.includes("/create-post") || location.pathname === "/post") {
       setActive(""); // Ningún subrayado cuando estamos en Create Post
-    } else if (location.pathname.startsWith("/feed")) {
+    } else if (location.pathname === "/" || location.pathname.startsWith("/feed")) {
       setActive("Home");
     } else if (location.pathname.startsWith("/landing")) {
       setActive("About");
@@ -66,7 +66,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* 🔹 Botón principal “Create Post” */}
+          {/* 🔹 Botón principal "Create Post" */}
           <div className="relative group">
             <button
               type="button"
@@ -154,7 +154,7 @@ const Navbar = () => {
               type="button"
               onClick={() => navigate("/feed/create-post")}
               className={`transition-all ${
-                location.pathname.includes("/feed/create-post")
+                location.pathname.includes("/create-post") || location.pathname === "/post"
                   ? "stroke-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
                   : "stroke-[#4EB2FF]"
               }`}

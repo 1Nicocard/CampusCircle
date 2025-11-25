@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signUp, type User } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthProvider";
 import AuthLayout from "./AuthLayout";
 import AuthInput from "../../ui/AuthInput";
 import AuthCTA from "../../ui/AuthCTA";
@@ -21,23 +21,33 @@ export default function SignUp(){
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
   const [err,setErr]=useState<string>();
+  const [success, setSuccess] = useState(false);
+  const { signUp } = useAuth();
 
   function submit(e:React.FormEvent){
     e.preventDefault();
     if(!name || !email || !pw) return setErr("Please complete required fields.");
     setErr(undefined);
+    setSuccess(false);
 
-    const u:User = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      major: program.trim() || undefined,
-      semester: term.trim() || undefined,
-      institution: institution.trim() || undefined,
-    };
-    const r = signUp(u, pw.trim());
-    if(!r.ok) return setErr(r.message || "Error");
-    nav("/feed", { replace: true } );
+    void (async () => {
+      const r = await signUp({
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        password: pw.trim(),
+        major: program.trim() || undefined,
+        semester: term.trim() || undefined,
+      });
+      if (!r.ok) return setErr(r.message || "Error");
+      
+      // Show success message
+      setSuccess(true);
+      
+      // Redirect to sign in page after 2 seconds
+      setTimeout(() => {
+        nav("/signin", { replace: true });
+      }, 2000);
+    })();
   }
 
   return (
@@ -62,9 +72,15 @@ export default function SignUp(){
         <AuthInput type="password" placeholder="Password" value={pw} onChange={setPw} icon={<img src={lockIcon} className="w-4 h-4" />} />
 
         {err && <p className="text-[#D14343] text-sm mt-1">{err}</p>}
+        {success && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <p className="text-green-700 text-sm font-medium">✓ Account created successfully!</p>
+            <p className="text-green-600 text-xs mt-1">Please check your email to verify your account, then sign in.</p>
+          </div>
+        )}
 
         <div className="mt-2">
-          <AuthCTA type="submit">Start now</AuthCTA>
+          <AuthCTA type="submit" disabled={success}>Start now</AuthCTA>
         </div>
       </form>
     </AuthLayout>
