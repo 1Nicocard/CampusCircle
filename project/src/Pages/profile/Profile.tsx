@@ -1,14 +1,12 @@
 // src/Pages/profile/Profile.tsx
 import { Link } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
-import { getCurrentUser } from "../../lib/auth";
-import {
-  getAllPosts,
-  toggleLike,
-  isLikedByMe,
-  type Post as FullPost,
-  type PostFile,
-} from "../../lib/postStore";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../lib/AuthProvider";
+import { isLikedByMe, type Post as FullPost, type PostFile, getAllPosts } from "../../lib/postStore";
+import * as supabaseApi from "../../lib/supabaseApi";
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../store/store';
+import { toggleLike as toggleLikeAction } from '../../store/postsSlice';
 
 const tagIcons: Record<string, string> = {
   Design: "/src/Assets/design.svg",
@@ -27,32 +25,99 @@ import icTerm from "../../Assets/icons/calendaricon.svg";
 type Post = FullPost;
 
 export default function Profile() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [profile, setProfile] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const refresh = useCallback(() => {
-    if (!user) return setPosts([]);
-    const all = getAllPosts();
-    const mine = all.filter((p) => {
-      const byEmail =
-        p?.user?.email &&
-        user.email &&
-        String(p.user.email).toLowerCase() ===
-          String(user.email).toLowerCase();
-      const byName =
-        String(p?.user?.name || "").trim().toLowerCase() ===
-        String(user.name || "").trim().toLowerCase();
-      return byEmail || byName;
-    });
-    setPosts(mine);
-  }, [user]);
-
+  // load profile and posts from Supabase when possible
   useEffect(() => {
-    refresh();
-    const onUpdate = () => refresh();
+    let mounted = true;
+    
+    async function loadProfileData() {
+      if (!user) {
+        if (mounted) {
+          setProfile(null);
+          setPosts([]);
+        }
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const pid = (user as any).id || (user as any)?.userId || null;
+        if (!pid) {
+          console.warn('Profile: no user id found');
+          return;
+        }
+        
+        console.log('Profile: fetching data for user', pid);
+        const prof = await supabaseApi.getProfile(String(pid));
+        const myPosts = await supabaseApi.getPostsByUser(String(pid));
+        
+        // Merge likes data from localStorage with posts from Supabase
+        const localPosts = getAllPosts();
+        const mergedPosts = myPosts.map(post => {
+          const localPost = localPosts.find(p => String(p.id) === String(post.id));
+          if (localPost) {
+            return {
+              ...post,
+              likes: localPost.likes ?? post.likes,
+              likedBy: localPost.likedBy ?? post.likedBy,
+            };
+          }
+          return post;
+        });
+        
+        if (mounted) {
+          console.log('Profile: loaded profile', prof);
+          setProfile(prof || null);
+          setPosts(Array.isArray(mergedPosts) ? mergedPosts : []);
+        }
+      } catch (err) {
+        console.error('Profile load failed', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadProfileData();
+
+    const onUpdate = () => {
+      (async () => {
+        try {
+          const pid = (user as any).id || (user as any)?.userId || null;
+          if (!pid) return;
+          const myPosts = await supabaseApi.getPostsByUser(String(pid));
+          
+          // Merge likes data from localStorage
+          const localPosts = getAllPosts();
+          const mergedPosts = myPosts.map(post => {
+            const localPost = localPosts.find(p => String(p.id) === String(post.id));
+            if (localPost) {
+              return {
+                ...post,
+                likes: localPost.likes ?? post.likes,
+                likedBy: localPost.likedBy ?? post.likedBy,
+              };
+            }
+            return post;
+          });
+          
+          if (mounted) setPosts(Array.isArray(mergedPosts) ? mergedPosts : []);
+        } catch (e) { 
+          console.warn('Failed to refresh posts:', e);
+        }
+      })();
+    };
+
     window.addEventListener("posts:update", onUpdate);
-    return () => window.removeEventListener("posts:update", onUpdate);
-  }, [refresh]);
+    return () => {
+      mounted = false;
+      window.removeEventListener("posts:update", onUpdate);
+    };
+  }, [user]); // Re-run when user changes (including profile updates)
 
   if (!user) {
     return (
@@ -77,13 +142,13 @@ export default function Profile() {
       <div className="container pt-40 md:pt-44 pb-4">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <img
-            src={user?.avatar || "/src/Assets/Foto user.jpg"}
+            src={user?.avatar || "/src/Assets/defaultuser.png"}
             alt="Profile picture"
             className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-2 border-[#0077FF] mx-auto md:mx-0"
           />
           <div className="text-center md:text-left">
             <h1 className="font-satoshi font-bold text-[34px] sm:text-[42px] md:text-[54px] leading-tight text-[#0077FF]">
-              {user.name || "Your name"}
+              {user.name || profile?.username || "Your name"}
             </h1>
           </div>
         </div>
@@ -108,12 +173,12 @@ export default function Profile() {
       <AboutRow
         icon={icProgram}
         label="Study Program"
-        value={user.major || "Interactive Media Design"}
+        value={user.major || profile?.career || "Interactive Media Design"}
       />
       <AboutRow
         icon={icTerm}
         label="Term"
-        value={user.semester || "5th Semester"}
+        value={user.semester || profile?.term || "5th Semester"}
       />
     </ul>
 
@@ -135,6 +200,8 @@ export default function Profile() {
                 <MiniPostCard
                   key={post.id}
                   post={post}
+                  dispatch={dispatch}
+                  userId={(user as any)?.id || (user as any)?.userId || ''}
                   onChange={(u) =>
                     setPosts((prev) =>
                       prev.map((x) => (x.id === u.id ? u : x))
@@ -181,20 +248,36 @@ function AboutRow({
 function MiniPostCard({
   post,
   onChange,
+  dispatch,
+  userId,
 }: {
   post: Post;
   onChange?: (u: Post) => void;
+  dispatch: AppDispatch;
+  userId: string;
 }) {
   const liked = isLikedByMe(post);
   const date = post.createdAt ? new Date(post.createdAt) : new Date();
   const dateStr = date.toLocaleDateString();
 
-  const handleLike = () => {
+  const handleLike = async () => {
     try {
-      const updated = toggleLike(String(post.id));
-      if (updated) onChange?.(updated as Post);
+      if (!userId) {
+        console.warn('Cannot like: no user ID');
+        return;
+      }
+      
+      // Dispatch to Redux - this will update DB and sync with Feed
+      await dispatch(toggleLikeAction({ postId: String(post.id), userId }));
+      
+      // Optionally refresh local state (Redux should handle this, but for immediate feedback)
+      const updatedPosts = getAllPosts();
+      const updated = updatedPosts.find(p => String(p.id) === String(post.id));
+      if (updated) {
+        onChange?.(updated as Post);
+      }
     } catch (e) {
-      console.warn(e);
+      console.warn('Like failed:', e);
     }
   };
 

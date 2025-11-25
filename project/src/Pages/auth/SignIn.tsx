@@ -1,7 +1,7 @@
 // src/Pages/auth/SignIn.tsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signIn } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthProvider";
 import AuthLayout from "./AuthLayout";
 import AuthInput from "../../ui/AuthInput";
 import AuthCTA from "../../ui/AuthCTA";
@@ -14,13 +14,16 @@ export default function SignIn(){
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
   const [err,setErr]=useState<string>();
+  const { signIn } = useAuth();
 
   function submit(e:React.FormEvent){
     e.preventDefault();
     setErr(undefined);
-    const r = signIn(email.trim(), pw.trim());
-  if(!r.ok) return setErr(r.message || "Invalid credentials");
-  nav("/feed", { replace: true } );
+    void (async () => {
+      const r = await signIn(email.trim(), pw.trim());
+      if (!r.ok) return setErr(r.message || "Invalid credentials");
+      nav("/feed", { replace: true });
+    })();
   }
 
   return (

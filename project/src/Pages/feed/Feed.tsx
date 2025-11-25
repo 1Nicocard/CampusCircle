@@ -17,7 +17,7 @@ const commentIcon = "/src/Assets/comment.png";
 const spark = "/src/Assets/icons/spark.svg";
 
 import mockData from "../../Data/mockData.json";
-import { getCurrentUser } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthProvider";
 import {
   getAllPosts,
   isLikedByMe,
@@ -27,12 +27,14 @@ import {
 
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store/store';
-import { selectPosts, toggleLike as toggleLikeAction } from '../../store/postsSlice';
+import { selectPosts, toggleLike as toggleLikeAction, fetchPosts, addComment } from '../../store/postsSlice';
+import * as supabaseApi from '../../lib/supabaseApi';
 
 const POSTS_PER_PAGE = 10;
 
 export default function Feed() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [posts, setPosts] = useState<CCPost[]>([]);
   const reduxPosts = useSelector(selectPosts) as CCPost[];
@@ -45,7 +47,9 @@ export default function Feed() {
   const [selectedCats, setSelectedCats] = useState<Category[]>(["All"]);
 
   useEffect(() => {
-    const refresh = () => setPosts(getAllPosts());
+    // dispatch fetch from supabase/local cache
+    dispatch(fetchPosts());
+    // seed local posts if completely empty (first-run)
     const existing = getAllPosts();
     if (!existing || existing.length === 0) {
       type SeedShape = { posts?: CCPost[] };
@@ -55,12 +59,14 @@ export default function Feed() {
         : (seed && Array.isArray(seed.posts) ? seed.posts : []);
       try { localStorage.setItem("posts", JSON.stringify(seeded)); } catch { }
     }
-    refresh();
+
+    // update posts from redux when available
     if (Array.isArray(reduxPosts) && reduxPosts.length > 0) setPosts(reduxPosts);
-    const onUpdate = () => refresh();
+
+    const onUpdate = () => setPosts(getAllPosts());
     window.addEventListener("posts:update", onUpdate);
     return () => window.removeEventListener("posts:update", onUpdate);
-  }, [reduxPosts]);
+  }, [reduxPosts, dispatch]);
 
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -251,10 +257,11 @@ export default function Feed() {
                   <button
                     onClick={async () => {
                       try {
-                        const res = await dispatch(toggleLikeAction(String(post.id)));
-                        const updated = (res as any)?.payload;
-                        if (updated) setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-                      } catch { }
+                        const userId = (authUser as any)?.id || (authUser as any)?.userId || '';
+                        await dispatch(toggleLikeAction({ postId: String(post.id), userId }));
+                      } catch (err) {
+                        console.warn('Like toggle failed:', err);
+                      }
                     }}
                     className="inline-flex items-center gap-2 px-2 sm:px-4 h-[34px] sm:h-[42px] rounded-full border bg-[#F1F4F9] border-[#E6E8EE] text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95"
                   >
@@ -290,7 +297,7 @@ export default function Feed() {
 
                       {/* Avatar */}
                       <img
-                        src={getCurrentUser()?.avatar || "/src/Assets/user2.png"}
+                        src={(authUser as any)?.avatar || "/src/Assets/user2.png"}
                         className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                         alt="you"
                       />
@@ -355,7 +362,7 @@ export default function Feed() {
                             const textVal = (drafts[id] || "").trim();
                             const attachmentsVal = draftsAttachments[id] || [];
 
-                            const commenter = getCurrentUser();
+                            const commenter = (authUser as any) || null;
                             const newComment = {
                               id: `c_${Date.now()}`,
                               text: textVal,
@@ -368,17 +375,19 @@ export default function Feed() {
                                 : undefined,
                             };
 
-                            try {
-                              dispatch({
-                                type: "posts/addComment",
-                                payload: { postId: String(id), comment: newComment },
-                              });
-                              setDrafts((s) => ({ ...s, [id]: "" }));
-                              setDraftsAttachments((s) => ({
-                                ...s,
-                                [id]: [],
-                              }));
-                            } catch { }
+                              (async () => {
+                                try {
+                                  const userId = (authUser as any)?.id || null;
+                                  const created = await supabaseApi.createComment(String(id), userId, textVal, attachmentsVal as any[]);
+                                  const commentToAdd = created || newComment;
+                                  dispatch(addComment({ postId: String(id), comment: commentToAdd }));
+                                  setDrafts((s) => ({ ...s, [id]: "" }));
+                                  setDraftsAttachments((s) => ({
+                                    ...s,
+                                    [id]: [],
+                                  }));
+                                } catch (err) { console.warn(err); }
+                              })();
                           }}
                           className="px-5 py-2 rounded-full bg-[#1E90FF] text-white text-[18px] font-medium"
                         >
@@ -406,7 +415,7 @@ export default function Feed() {
                           const textVal = (drafts[id] || "").trim();
                           const attachmentsVal = draftsAttachments[id] || [];
 
-                          const commenter = getCurrentUser();
+                          const commenter = (authUser as any) || null;
                           const newComment = {
                             id: `c_${Date.now()}`,
                             text: textVal,
@@ -419,14 +428,16 @@ export default function Feed() {
                               : undefined,
                           };
 
-                          try {
-                            dispatch({
-                              type: "posts/addComment",
-                              payload: { postId: String(id), comment: newComment },
-                            });
-                            setDrafts((s) => ({ ...s, [id]: "" }));
-                            setDraftsAttachments((s) => ({ ...s, [id]: [] }));
-                          } catch { }
+                          (async () => {
+                            try {
+                              const userId = (authUser as any)?.id || null;
+                              const created = await supabaseApi.createComment(String(id), userId, textVal, attachmentsVal as any[]);
+                              const commentToAdd = created || newComment;
+                              dispatch(addComment({ postId: String(id), comment: commentToAdd }));
+                              setDrafts((s) => ({ ...s, [id]: "" }));
+                              setDraftsAttachments((s) => ({ ...s, [id]: [] }));
+                            } catch (err) { console.warn(err); }
+                          })();
                         }}
                         className="px-6 py-2 rounded-full bg-[#1E90FF] text-white text-[18px] font-medium"
                       >

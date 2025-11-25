@@ -2,9 +2,10 @@ import { useState, useRef } from "react";
 import { Button } from "../../Components/Button";
 import { Trash2 } from "lucide-react";
 import usersData from "../../Data/users.json"; // <-- fallback si no hay sesión (ok)
-import { getCurrentUser } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthProvider";
+import * as supabaseApi from '../../lib/supabaseApi';
 import { useDispatch } from 'react-redux'
-import { addPost } from '../../store/postsSlice'
+import { addPost, createPost } from '../../store/postsSlice'
 import type { Post, PostFile } from '../../lib/postStore';
 import type { User } from '../../lib/auth';
 import type { AppDispatch } from '../../store/store';
@@ -18,6 +19,7 @@ export default function Post() {
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { user: authUser } = useAuth();
 
   const toggleSubject = (subject: string) => {
     setSelectedSubjects((prev) =>
@@ -57,13 +59,21 @@ export default function Post() {
     window.open(url, "_blank");
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (header.trim() === "" || text.trim() === "") {
       alert("Please complete the Header and Question before sharing.");
       return;
     }
 
-    const currentUser = getCurrentUser() || usersData.users[0]; // fallback: Sergio del seed
+    // require auth for publishing to Supabase; if not signed in, redirect to sign in
+    if (!authUser) {
+      alert('Please sign in to publish posts.');
+      // send them to sign-in page
+      window.location.href = '/signin';
+      return;
+    }
+
+    const currentUser = (authUser as any) || usersData.users[0]; // fallback: Sergio del seed
 
 
     const now = new Date();
@@ -76,6 +86,21 @@ export default function Post() {
       return 'other' as const;
     };
 
+    // upload attachments to Supabase Storage (if available) and replace URLs
+    let postFiles: PostFile[] = [];
+    try {
+      const uid = (authUser as any)?.id || null;
+      const uploaded = await Promise.all(
+        files.map(async (f) => {
+          try {
+            const url = await supabaseApi.uploadFile(f, uid);
+            return { id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: url || URL.createObjectURL(f), label: f.name } as PostFile;
+          } catch (e) { void e; return { id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: URL.createObjectURL(f), label: f.name } as PostFile; }
+        })
+      );
+      postFiles = uploaded.filter(Boolean) as PostFile[];
+    } catch (e) { console.warn('upload attachments failed', e); postFiles = files.map((f) => ({ id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: URL.createObjectURL(f), label: f.name } as PostFile)); }
+
     const newPost: Post = {
       id: String(Date.now()),
       user: currentUser as User,
@@ -83,7 +108,7 @@ export default function Post() {
       tag: selectedSubjects[0] || "General",
       // combine header and body into content so Feed can extract title
       content: `${header}\n\n${text}`,
-      files: files.map((f) => ({ id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: URL.createObjectURL(f), label: f.name } as PostFile)),
+      files: postFiles,
       likes: 0,
       comments: 0,
       commentsList: [],
@@ -91,11 +116,15 @@ export default function Post() {
     };
 
     try {
-      // use redux action to add post and persist via slice
-      dispatch(addPost(newPost));
+      // prefer Supabase-backed creation; createPost will fallback to localStorage if needed
+      const res = await dispatch(createPost(newPost));
+      const created = (res as any)?.payload as Post | null;
+      if (!created) {
+        // fallback to redux addPost so UI still updates
+        dispatch(addPost(newPost));
+      }
     } catch (err) {
       console.warn('Failed to save post', err);
-      // fallback to localStorage so UX still works
       try {
         const existing = JSON.parse(localStorage.getItem("posts") || "[]");
         const updated = [newPost, ...existing];

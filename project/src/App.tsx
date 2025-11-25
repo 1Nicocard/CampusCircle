@@ -12,7 +12,7 @@ import EditProfile from "./Pages/profile/EditProfile";
 
 import Nav from "./Components/Nav";
 import Footer from "./Components/Footer";
-import { getCurrentUser } from "./lib/auth";
+import { useAuth } from "./lib/AuthProvider";
 
 const FeedLayout = () => {
   return (
@@ -27,7 +27,7 @@ const FeedLayout = () => {
 };
 
 export default function App() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
 
   return (
     <Routes>
