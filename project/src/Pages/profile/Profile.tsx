@@ -29,7 +29,8 @@ export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
   const [posts, setPosts] = useState<Post[]>([]);
   const [profile, setProfile] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
+
 
   // load profile and posts from Supabase when possible
   useEffect(() => {
