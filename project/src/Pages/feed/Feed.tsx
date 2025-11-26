@@ -27,7 +27,7 @@ import {
 
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store/store';
-import { selectPosts, toggleLike as toggleLikeAction, fetchPosts, addComment, updatePost } from '../../store/postsSlice';
+import { selectPosts, toggleLike as toggleLikeAction, fetchPosts, addComment } from '../../store/postsSlice';
 import * as supabaseApi from '../../lib/supabaseApi';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -64,47 +64,57 @@ export default function Feed() {
     // update posts from redux when available
     if (Array.isArray(reduxPosts) && reduxPosts.length > 0) setPosts(reduxPosts);
 
-    // 🔴 REALTIME: Subscribe to posts table updates for live likes
-    let realtimeChannel: any = null;
-    if (supabase) {
-      realtimeChannel = supabase
-        .channel('posts-realtime')
-        .on('postgres_changes', 
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
-            table: 'posts' 
-          }, 
-          (payload: any) => {
-            console.log('🔴 Realtime update received:', payload);
-            const updatedPost = payload.new;
-            if (updatedPost?.id) {
-              // Find existing post in Redux to merge with
-              const existingPost = reduxPosts.find(p => String(p.id) === String(updatedPost.id));
-              if (existingPost) {
-                const merged: CCPost = {
-                  ...existingPost,
-                  likedBy: updatedPost.liked_by || [],
-                  likes: (updatedPost.liked_by || []).length
-                };
-                dispatch(updatePost(merged));
-              }
-            }
-          }
-        )
-        .subscribe();
-    }
-
     const onUpdate = () => setPosts(getAllPosts());
     window.addEventListener("posts:update", onUpdate);
     
     return () => {
       window.removeEventListener("posts:update", onUpdate);
-      if (realtimeChannel) {
-        supabase?.removeChannel(realtimeChannel);
-      }
     };
   }, [reduxPosts, dispatch]);
+
+  // Separate useEffect for Realtime - runs ONCE on mount
+  useEffect(() => {
+    if (!supabase) {
+      console.log('⚠️ Supabase not configured, skipping Realtime');
+      return;
+    }
+
+    console.log('🔴 Setting up Realtime subscription (ONCE on mount)...');
+    const realtimeChannel = supabase
+      .channel('posts-realtime-' + Math.random()) // Unique channel name
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'posts' 
+        }, 
+        (payload: any) => {
+          console.log('🔴 Realtime update received:', payload);
+          const updatedRow = payload.new;
+          if (updatedRow?.id && updatedRow.liked_by) {
+            console.log('📤 Updating post', updatedRow.id, 'with', updatedRow.liked_by.length, 'likes');
+            // Dispatch fetchPosts to refresh from database
+            dispatch(fetchPosts());
+          }
+        }
+      )
+      .subscribe((status: string) => {
+        console.log('🔴 Realtime subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to posts updates');
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription error - check Supabase Realtime is enabled');
+        }
+      });
+
+    return () => {
+      console.log('🔴 Cleaning up Realtime subscription');
+      if (supabase) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
+  }, [dispatch]); // Only depend on dispatch, NOT reduxPosts
 
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();

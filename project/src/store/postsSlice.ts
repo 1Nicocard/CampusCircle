@@ -112,22 +112,8 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(fetchPosts.fulfilled, (state, action: PayloadAction<Post[]>) => {
-      // Preserve likes data from existing posts when fetching new data
-      const existingPosts = state.posts;
-      const newPosts = action.payload.map(newPost => {
-        const existing = existingPosts.find(p => String(p.id) === String(newPost.id));
-        if (existing) {
-          // Keep the likes and likedBy from localStorage
-          return {
-            ...newPost,
-            likes: existing.likes ?? newPost.likes,
-            likedBy: existing.likedBy ?? newPost.likedBy,
-          };
-        }
-        return newPost;
-      });
-      
-      state.posts = newPosts;
+      // Use fresh data from database - DON'T preserve old likes
+      state.posts = action.payload;
       try { saveAllPosts(state.posts); } catch { /* ignore */ }
     });
 
@@ -143,6 +129,7 @@ const postsSlice = createSlice({
       const { postId, likes, likedBy } = action.payload;
       const post = state.posts.find(p => String(p.id) === String(postId));
       if (post) {
+        // Update with server response
         post.likes = likes;
         post.likedBy = likedBy;
         try { saveAllPosts(state.posts); } catch { /* ignore */ }
