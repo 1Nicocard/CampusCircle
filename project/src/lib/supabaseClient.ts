@@ -8,7 +8,13 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | und
 let supabase: ReturnType<typeof createClient> | null = null;
 
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    }
+  });
 } else {
   // Not configured — the app can fall back to local mock auth/persistence
   supabase = null;

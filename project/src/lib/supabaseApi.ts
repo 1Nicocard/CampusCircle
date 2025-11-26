@@ -18,7 +18,7 @@ export async function fetchPosts(): Promise<Post[]> {
     // select posts and the related profile (profiles must be set as a foreign relation in Supabase)
     const { data, error } = await (supabase as any)
       .from('posts')
-      .select('id, content, file_url, created_at, user_id, liked_by, profiles(id, username, career, bio, term, avatar, created_at)')
+      .select('id, content, file_url, created_at, user_id, liked_by, tag, profiles(id, username, career, bio, term, avatar, created_at)')
       .order('created_at', { ascending: false });
 
     if (error || !data) {
@@ -60,7 +60,7 @@ export async function fetchPosts(): Promise<Post[]> {
           likedBy: r.liked_by || [],
           comments: commentsList.length,
           commentsList: commentsList,
-          tag: 'General',
+          tag: r.tag || 'General',
         } as Post;
       })
     );
@@ -88,6 +88,7 @@ export async function createPost(post: Post): Promise<Post | null> {
       content: post.content,
       file_url: (post.files && post.files.length > 0) ? post.files[0].url : null,
       created_at: post.createdAt || new Date().toISOString(),
+      tag: post.tag || 'General',
     };
 
     // Prefer attaching the authenticated session user id when available.
@@ -103,9 +104,17 @@ export async function createPost(post: Post): Promise<Post | null> {
       }
     }
 
-  const { data, error } = await (supabase as any).from('posts').insert([toInsert]).select('id, content, file_url, created_at, user_id, profiles(id, username, career, bio, term, created_at)');
+  console.log('Creating post with data:', toInsert);
+
+  const { data, error } = await (supabase as any).from('posts').insert([toInsert]).select('id, content, file_url, created_at, user_id, tag, profiles(id, username, career, bio, term, created_at)');
     if (error || !data) {
-      console.warn('createPost insert error:', error);
+      console.error('❌ createPost insert error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      });
       // fallback: persist locally so the UI still shows the post
       try {
         const existing = getAllPosts();
@@ -115,6 +124,8 @@ export async function createPost(post: Post): Promise<Post | null> {
     }
 
     const r = (data as any[])[0];
+    console.log('✅ Post created successfully:', { id: r.id, tag: r.tag });
+    
     const mapped: Post = {
       id: String(r.id),
       content: r.content || '',
@@ -128,6 +139,7 @@ export async function createPost(post: Post): Promise<Post | null> {
       tag: r.tag || 'General',
     };
 
+    console.log('Mapped post object:', mapped);
     try { const existing = getAllPosts(); saveAllPosts([mapped, ...existing]); } catch (e) { void e; }
 
     return mapped;
@@ -274,14 +286,26 @@ export async function createComment(postId: string, userId: string | null, text:
   }
 
   try {
+    // Upload attachments first if any
+    let uploadedAttachments = attachments || [];
+    if (attachments && attachments.length > 0) {
+      console.log('Uploading comment attachments:', attachments.length);
+      // For now, we'll pass the blob URLs as-is
+      // In production, you'd upload to Storage and get public URLs
+      uploadedAttachments = attachments;
+    }
+
     const toInsert: any = {
       content: text,
       post_id: postId,
       created_at: new Date().toISOString(),
+      attachments: uploadedAttachments.length > 0 ? JSON.stringify(uploadedAttachments) : null,
     };
     if (userId) toInsert.user_id = userId;
 
-  const { data, error } = await (supabase as any).from('comments').insert([toInsert]).select('id, content, created_at, user_id, profiles(id, username, career, bio, term, avatar, created_at)');
+    console.log('Creating comment with data:', toInsert);
+
+  const { data, error } = await (supabase as any).from('comments').insert([toInsert]).select('id, content, created_at, user_id, attachments, profiles(id, username, career, bio, term, avatar, created_at)');
     if (error || !data) {
       console.warn('createComment insert error:', error);
       return null;
@@ -289,15 +313,28 @@ export async function createComment(postId: string, userId: string | null, text:
 
     const row = (data as any[])[0];
     const profile = row.profiles || null;
+    
+    // Parse attachments from database if they exist
+    let parsedAttachments = undefined;
+    if (row.attachments) {
+      try {
+        parsedAttachments = typeof row.attachments === 'string' 
+          ? JSON.parse(row.attachments) 
+          : row.attachments;
+      } catch (e) {
+        console.warn('Failed to parse comment attachments:', e);
+      }
+    }
+
     const comment = {
       id: String(row.id),
       text: row.content || text,
       createdAt: row.created_at || new Date().toISOString(),
       user: profile ? { 
         name: profile.username,
-        avatar: profile.avatar || '/src/Assets/defaultuser.png', // use DB avatar or fallback
+        avatar: profile.avatar || '/src/Assets/defaultuser.png',
       } : (userId ? { id: userId } : undefined),
-      attachments: attachments && attachments.length ? attachments : undefined,
+      attachments: parsedAttachments,
     };
     return comment;
   } catch (err) {
@@ -309,20 +346,35 @@ export async function createComment(postId: string, userId: string | null, text:
 export async function fetchComments(postId: string) {
   if (!supabase) return [];
   try {
-  const { data, error } = await (supabase as any).from('comments').select('id, content, created_at, user_id, profiles(id, username, career, bio, term, avatar, created_at)').eq('post_id', postId).order('created_at', { ascending: true });
+  const { data, error } = await (supabase as any).from('comments').select('id, content, created_at, user_id, attachments, profiles(id, username, career, bio, term, avatar, created_at)').eq('post_id', postId).order('created_at', { ascending: true });
     if (error || !data) {
       console.warn('fetchComments error', error);
       return [];
     }
-  return (data as any[]).map((r) => ({ 
-    id: String(r.id), 
-    text: r.content, 
-    createdAt: r.created_at, 
-    user: r.profiles ? { 
-      name: r.profiles.username,
-      avatar: r.profiles.avatar || '/src/Assets/defaultuser.png', // use DB avatar or fallback
-    } : undefined 
-  }));
+  return (data as any[]).map((r) => {
+    // Parse attachments from database if they exist
+    let parsedAttachments = undefined;
+    if (r.attachments) {
+      try {
+        parsedAttachments = typeof r.attachments === 'string' 
+          ? JSON.parse(r.attachments) 
+          : r.attachments;
+      } catch (e) {
+        console.warn('Failed to parse comment attachments:', e);
+      }
+    }
+
+    return { 
+      id: String(r.id), 
+      text: r.content, 
+      createdAt: r.created_at, 
+      user: r.profiles ? { 
+        name: r.profiles.username,
+        avatar: r.profiles.avatar || '/src/Assets/defaultuser.png',
+      } : undefined,
+      attachments: parsedAttachments,
+    };
+  });
   } catch (err) {
     console.warn('fetchComments failed', err);
     return [];
@@ -354,7 +406,7 @@ export async function getPostsByUser(userId: string) {
   try {
     const { data, error } = await (supabase as any)
       .from('posts')
-      .select('id, content, file_url, created_at, user_id, liked_by, profiles(id, username, career, bio, term, avatar, created_at)')
+      .select('id, content, file_url, created_at, user_id, liked_by, tag, profiles(id, username, career, bio, term, avatar, created_at)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
@@ -392,7 +444,7 @@ export async function getPostsByUser(userId: string) {
           likedBy: r.liked_by || [],
           comments: commentsList.length,
           commentsList: commentsList,
-          tag: 'General',
+          tag: r.tag || 'General',
         };
       })
     );

@@ -27,8 +27,9 @@ import {
 
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store/store';
-import { selectPosts, toggleLike as toggleLikeAction, fetchPosts, addComment } from '../../store/postsSlice';
+import { selectPosts, toggleLike as toggleLikeAction, fetchPosts, addComment, updatePost } from '../../store/postsSlice';
 import * as supabaseApi from '../../lib/supabaseApi';
+import { supabase } from '../../lib/supabaseClient';
 
 const POSTS_PER_PAGE = 10;
 
@@ -63,9 +64,46 @@ export default function Feed() {
     // update posts from redux when available
     if (Array.isArray(reduxPosts) && reduxPosts.length > 0) setPosts(reduxPosts);
 
+    // 🔴 REALTIME: Subscribe to posts table updates for live likes
+    let realtimeChannel: any = null;
+    if (supabase) {
+      realtimeChannel = supabase
+        .channel('posts-realtime')
+        .on('postgres_changes', 
+          { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'posts' 
+          }, 
+          (payload: any) => {
+            console.log('🔴 Realtime update received:', payload);
+            const updatedPost = payload.new;
+            if (updatedPost?.id) {
+              // Find existing post in Redux to merge with
+              const existingPost = reduxPosts.find(p => String(p.id) === String(updatedPost.id));
+              if (existingPost) {
+                const merged: CCPost = {
+                  ...existingPost,
+                  likedBy: updatedPost.liked_by || [],
+                  likes: (updatedPost.liked_by || []).length
+                };
+                dispatch(updatePost(merged));
+              }
+            }
+          }
+        )
+        .subscribe();
+    }
+
     const onUpdate = () => setPosts(getAllPosts());
     window.addEventListener("posts:update", onUpdate);
-    return () => window.removeEventListener("posts:update", onUpdate);
+    
+    return () => {
+      window.removeEventListener("posts:update", onUpdate);
+      if (realtimeChannel) {
+        supabase?.removeChannel(realtimeChannel);
+      }
+    };
   }, [reduxPosts, dispatch]);
 
   const filteredPosts = useMemo(() => {
@@ -395,6 +433,37 @@ export default function Feed() {
                         </button>
                       </div>
                     </div>
+
+                    {/* 📎 Preview of attached files */}
+                    {draftsAttachments[id] && draftsAttachments[id].length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {draftsAttachments[id].map((file, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+                            <img
+                              src={
+                                file.type === "pdf"
+                                  ? "https://cdn-icons-png.flaticon.com/512/337/337946.png"
+                                  : "https://cdn-icons-png.flaticon.com/512/337/337940.png"
+                              }
+                              className="w-5 h-5"
+                              alt="file icon"
+                            />
+                            <span className="text-sm text-gray-700">{file.label}</span>
+                            <button
+                              onClick={() => {
+                                setDraftsAttachments((s) => ({
+                                  ...s,
+                                  [id]: s[id].filter((_, i) => i !== idx),
+                                }));
+                              }}
+                              className="ml-2 text-red-500 hover:text-red-700 text-lg"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* 🟧 Botones móviles — debajo y centrados */}
                     <div className="

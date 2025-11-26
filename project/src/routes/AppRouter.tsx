@@ -9,9 +9,8 @@ import Post from "../Pages/post/Post"; // ✅ asegúrate de tener este component
 function AppRouter() {
   return (
     <Routes>
-      {/* Feed/Home */}
+      {/* Página principal */}
       <Route path="/" element={<Feed />} />
-      <Route path="/feed" element={<Feed />} />
 
       {/* Autenticación */}
       <Route path="/signin" element={<SignIn />} />
@@ -19,13 +18,10 @@ function AppRouter() {
 
       {/* Crear post */}
       <Route path="/post" element={<Post />} />
-      <Route path="/feed/create-post" element={<Post />} />
 
       {/* Perfil */}
       <Route path="/profile" element={<Profile />} />
-      <Route path="/feed/profile" element={<Profile />} />
       <Route path="/profile/edit" element={<EditProfile />} />
-      <Route path="/feed/profile/edit" element={<EditProfile />} />
 
       {/* Redirección si no hay coincidencias */}
       <Route path="*" element={<Navigate to="/" replace />} />
