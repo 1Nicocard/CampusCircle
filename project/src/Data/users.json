@@ -5,7 +5,7 @@
       "name": "Sergio Arias",
       "email": "sergio@example.com",
       "password": "aaaaaa",
-      "avatar": "/src/Assets/user2.png",
+      "avatar": "/assets/user2.png",
       "semester": "3rd semester",
       "major": "Communication & Digital Media",
       "institution": "Icesi"
@@ -15,7 +15,7 @@
       "name": "Hanna Muriel",
       "email": "hanna@example.com",
       "password": "aaaaaa",
-      "avatar": "/src/Assets/user3.png",
+      "avatar": "/assets/user3.png",
       "semester": "5th semester",
       "major": "Software Engineering",
       "institution": "Icesi"

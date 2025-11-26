@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             term: payload.semester 
           });
           
-          const defaultAvatar = '/src/Assets/defaultuser.png'; // Default avatar for all new users
+          const defaultAvatar = '/assets/defaultuser.png'; // Default avatar for all new users
           
           try {
             const { data: profileData, error: profileError } = await (supabase as any)
@@ -225,7 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!profileRow) {
         try {
           const metaName = (session!.user!.user_metadata as any)?.name || session!.user!.email || 'user';
-          const defaultAvatar = '/src/Assets/defaultuser.png'; // Default avatar
+          const defaultAvatar = '/assets/defaultuser.png'; // Default avatar
           
           const upsertRes = await (supabase as any).from('profiles').upsert({
             id: uid,

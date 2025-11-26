@@ -3,7 +3,7 @@
     "id": 1,
     "user": {
       "name": "Maya Villalba Gómez",
-      "avatar": "/src/Assets/Foto user.jpg",
+      "avatar": "/assets/Foto user.jpg",
       "role": "Graphic design student",
       "semester": "1st semester"
     },
@@ -28,7 +28,7 @@
     "id": 2,
     "user": {
       "name": "Lucas Carter Méndez",
-      "avatar": "/src/Assets/user2.png",
+      "avatar": "/assets/user2.png",
       "role": "Software Engineering student",
       "semester": "3rd semester"
     },
@@ -42,7 +42,7 @@
     "id": 3,
     "user": {
       "name": "Sofía Rincón",
-      "avatar": "/src/Assets/user3.png",
+      "avatar": "/assets/user3.png",
       "role": "Animation student",
       "semester": "2nd semester"
     },

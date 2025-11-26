@@ -88,18 +88,43 @@ export default function Post() {
 
     // upload attachments to Supabase Storage (if available) and replace URLs
     let postFiles: PostFile[] = [];
+    let uploadFailures: string[] = [];
+    
     try {
       const uid = (authUser as any)?.id || null;
       const uploaded = await Promise.all(
         files.map(async (f) => {
           try {
             const url = await supabaseApi.uploadFile(f, uid);
-            return { id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: url || URL.createObjectURL(f), label: f.name } as PostFile;
-          } catch (e) { void e; return { id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: URL.createObjectURL(f), label: f.name } as PostFile; }
+            if (!url) {
+              console.error(`Failed to upload file: ${f.name}`);
+              uploadFailures.push(f.name);
+              return null;
+            }
+            return { id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: url, label: f.name } as PostFile;
+          } catch (e) {
+            console.error(`Error uploading file ${f.name}:`, e);
+            uploadFailures.push(f.name);
+            return null;
+          }
         })
       );
       postFiles = uploaded.filter(Boolean) as PostFile[];
-    } catch (e) { console.warn('upload attachments failed', e); postFiles = files.map((f) => ({ id: `f_${Date.now()}_${f.name}`, type: mapType(f.name), url: URL.createObjectURL(f), label: f.name } as PostFile)); }
+    } catch (e) {
+      console.error('Upload attachments failed:', e);
+      alert('❌ Failed to upload attachments. Please check your connection and try again.');
+      return;
+    }
+
+    // If some files failed to upload, warn the user
+    if (uploadFailures.length > 0) {
+      const shouldContinue = confirm(
+        `⚠️ Failed to upload ${uploadFailures.length} file(s): ${uploadFailures.join(', ')}\n\nDo you want to post without these attachments?`
+      );
+      if (!shouldContinue) {
+        return;
+      }
+    }
 
     const newPost: Post = {
       id: String(Date.now()),
@@ -143,7 +168,7 @@ export default function Post() {
   return (
     <div className="container pt-36 pb-10 bg-[#F0F3FC] min-h-screen">
       <div className="flex flex-col items-center text-center gap-2 mb-10 lg:flex-row lg:text-left lg:items-center lg:gap-4">
-        <img src="/src/Assets/+.png" alt="Add" className="w-[77px] h-[77px]" />
+        <img src="/assets/+.png" alt="Add" className="w-[77px] h-[77px]" />
         <h1 className="font-[Satoshi] font-bold text-[#0077FF] text-[45px] lg:text-[80px] text-center">
           Create your question
         </h1>

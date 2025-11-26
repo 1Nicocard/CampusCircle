@@ -34,7 +34,7 @@ export default function EditProfile() {
   const [avatar, setAvatar] = useState(u?.avatar || "");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const avatarPreview = useMemo(() => (avatar?.trim() ? avatar : "/src/Assets/defaultuser.png"), [avatar]);
+  const avatarPreview = useMemo(() => (avatar?.trim() ? avatar : "/assets/defaultuser.png"), [avatar]);
 
   useEffect(() => { if (!u) nav("/signin"); }, [u, nav]);
   if (!u) return null;
@@ -92,7 +92,7 @@ export default function EditProfile() {
         username: name.trim(),
         career: program.trim(),
         term: term.trim(),
-        avatar: avatar?.trim() || '/src/Assets/defaultuser.png'
+        avatar: avatar?.trim() || '/assets/defaultuser.png'
       }));
       console.log('Posts updated in Redux store');
       
