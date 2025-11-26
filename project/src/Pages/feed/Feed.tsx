@@ -4,17 +4,17 @@ import Card from "../../Components/Card";
 import { Button } from "../../Components/Button";
 
 const tagIcons: Record<string, string> = {
-  Design: "/src/Assets/design.svg",
-  Literature: "/src/Assets/literature.svg",
-  Math: "/src/Assets/math.svg",
-  Science: "/src/Assets/science.png",
-  Social: "/src/Assets/social.png",
-  Default: "/src/Assets/Star.png",
+  Design: "/assets/design.svg",
+  Literature: "/assets/literature.svg",
+  Math: "/assets/math.svg",
+  Science: "/assets/science.png",
+  Social: "/assets/social.png",
+  Default: "/assets/Star.png",
 };
 
-const clipIcon = "/src/Assets/clip.png";
-const commentIcon = "/src/Assets/comment.png";
-const spark = "/src/Assets/icons/spark.svg";
+const clipIcon = "/assets/clip.png";
+const commentIcon = "/assets/comment.png";
+const spark = "/assets/icons/spark.svg";
 
 import mockData from "../../Data/mockData.json";
 import { useAuth } from "../../lib/AuthProvider";
@@ -42,6 +42,7 @@ export default function Feed() {
   const dispatch = useDispatch<AppDispatch>();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [draftsAttachments, setDraftsAttachments] = useState<Record<string, PostFile[]>>({});
+  const [draftsRawFiles, setDraftsRawFiles] = useState<Record<string, File[]>>({});
   const [visiblePostCount, setVisiblePostCount] = useState(POSTS_PER_PAGE);
 
   type Category = "All" | "Design" | "Literature" | "Math" | "Science" | "Social";
@@ -141,8 +142,8 @@ export default function Feed() {
       {/* Banner */}
       <div className="relative w-full">
         <picture>
-          <source media="(max-width: 668px)" srcSet="/src/Assets/banner-mobile.png" />
-          <img src="/src/Assets/banner.png" alt="CampusCircle banner" className="w-full h-auto object-cover" />
+          <source media="(max-width: 668px)" srcSet="/assets/banner-mobile.png" />
+          <img src="/assets/banner.png" alt="CampusCircle banner" className="w-full h-auto object-cover" />
         </picture>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 translate-y-[-60px] sm:translate-y-[-80px] md:translate-y-[-100px]">
           <h1
@@ -314,7 +315,7 @@ export default function Feed() {
                     className="inline-flex items-center gap-2 px-2 sm:px-4 h-[34px] sm:h-[42px] rounded-full border bg-[#F1F4F9] border-[#E6E8EE] text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95"
                   >
                     <img
-                      src={isLikedByMe(post) ? "/src/Assets/like-red.png" : "/src/Assets/like.svg"}
+                      src={isLikedByMe(post) ? "/assets/like-red.png" : "/assets/like.svg"}
                       alt="like"
                       className="w-5 sm:w-5 lg:w-5 h-5 sm:h-5 lg:h-5"
                     />
@@ -345,7 +346,7 @@ export default function Feed() {
 
                       {/* Avatar */}
                       <img
-                        src={(authUser as any)?.avatar || "/src/Assets/user2.png"}
+                        src={(authUser as any)?.avatar || "/assets/user2.png"}
                         className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                         alt="you"
                       />
@@ -390,6 +391,10 @@ export default function Feed() {
                               ...s,
                               [id]: [...(s[id] || []), fileShape],
                             }));
+                            setDraftsRawFiles((s) => ({
+                              ...s,
+                              [id]: [...(s[id] || []), f],
+                            }));
                             (e.target as HTMLInputElement).value = "";
                           }}
                         />
@@ -408,7 +413,7 @@ export default function Feed() {
                         <button
                           onClick={() => {
                             const textVal = (drafts[id] || "").trim();
-                            const attachmentsVal = draftsAttachments[id] || [];
+                            const rawFiles = draftsRawFiles[id] || [];
 
                             const commenter = (authUser as any) || null;
                             const newComment = {
@@ -418,22 +423,27 @@ export default function Feed() {
                                 ? { name: commenter.name, avatar: commenter.avatar }
                                 : undefined,
                               createdAt: new Date().toISOString(),
-                              attachments: attachmentsVal.length
-                                ? attachmentsVal
-                                : undefined,
+                              attachments: undefined,
                             };
 
                               (async () => {
                                 try {
                                   const userId = (authUser as any)?.id || null;
-                                  const created = await supabaseApi.createComment(String(id), userId, textVal, attachmentsVal as any[]);
+                                  
+                                  // Upload files to Supabase Storage first
+                                  let uploadedAttachments: any[] = [];
+                                  if (rawFiles.length > 0) {
+                                    const uploadPromises = rawFiles.map(f => supabaseApi.uploadCommentFile(f, userId));
+                                    const results = await Promise.all(uploadPromises);
+                                    uploadedAttachments = results.filter(Boolean) as any[];
+                                  }
+
+                                  const created = await supabaseApi.createComment(String(id), userId, textVal, uploadedAttachments);
                                   const commentToAdd = created || newComment;
                                   dispatch(addComment({ postId: String(id), comment: commentToAdd }));
                                   setDrafts((s) => ({ ...s, [id]: "" }));
-                                  setDraftsAttachments((s) => ({
-                                    ...s,
-                                    [id]: [],
-                                  }));
+                                  setDraftsAttachments((s) => ({ ...s, [id]: [] }));
+                                  setDraftsRawFiles((s) => ({ ...s, [id]: [] }));
                                 } catch (err) { console.warn(err); }
                               })();
                           }}
@@ -465,6 +475,10 @@ export default function Feed() {
                                   ...s,
                                   [id]: s[id].filter((_, i) => i !== idx),
                                 }));
+                                setDraftsRawFiles((s) => ({
+                                  ...s,
+                                  [id]: s[id].filter((_, i) => i !== idx),
+                                }));
                               }}
                               className="ml-2 text-red-500 hover:text-red-700 text-lg"
                             >
@@ -492,7 +506,7 @@ export default function Feed() {
                       <button
                         onClick={() => {
                           const textVal = (drafts[id] || "").trim();
-                          const attachmentsVal = draftsAttachments[id] || [];
+                          const rawFiles = draftsRawFiles[id] || [];
 
                           const commenter = (authUser as any) || null;
                           const newComment = {
@@ -502,19 +516,27 @@ export default function Feed() {
                               ? { name: commenter.name, avatar: commenter.avatar }
                               : undefined,
                             createdAt: new Date().toISOString(),
-                            attachments: attachmentsVal.length
-                              ? attachmentsVal
-                              : undefined,
+                            attachments: undefined,
                           };
 
                           (async () => {
                             try {
                               const userId = (authUser as any)?.id || null;
-                              const created = await supabaseApi.createComment(String(id), userId, textVal, attachmentsVal as any[]);
+                              
+                              // Upload files to Supabase Storage first
+                              let uploadedAttachments: any[] = [];
+                              if (rawFiles.length > 0) {
+                                const uploadPromises = rawFiles.map(f => supabaseApi.uploadCommentFile(f, userId));
+                                const results = await Promise.all(uploadPromises);
+                                uploadedAttachments = results.filter(Boolean) as any[];
+                              }
+
+                              const created = await supabaseApi.createComment(String(id), userId, textVal, uploadedAttachments);
                               const commentToAdd = created || newComment;
                               dispatch(addComment({ postId: String(id), comment: commentToAdd }));
                               setDrafts((s) => ({ ...s, [id]: "" }));
                               setDraftsAttachments((s) => ({ ...s, [id]: [] }));
+                              setDraftsRawFiles((s) => ({ ...s, [id]: [] }));
                             } catch (err) { console.warn(err); }
                           })();
                         }}
@@ -532,7 +554,7 @@ export default function Feed() {
                   {(post.commentsList ?? []).map((c) => (
                     <div key={c.id} className="flex items-start gap-4 bg-[#FBFCFF] rounded-2xl p-4 sm:p-5">
                       <img
-                        src={c.user?.avatar || "/src/Assets/user2.png"}
+                        src={c.user?.avatar || "/assets/user2.png"}
                         className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
                       />
 

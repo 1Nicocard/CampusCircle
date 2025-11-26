@@ -39,7 +39,7 @@ export async function fetchPosts(): Promise<Post[]> {
           name: profile.username,
           major: profile.career,
           semester: profile.term,
-          avatar: profile.avatar || '/src/Assets/defaultuser.png', // use DB avatar or fallback
+          avatar: profile.avatar || '/assets/defaultuser.png', // use DB avatar or fallback
         } : undefined;
 
         // Fetch comments for this post
@@ -258,6 +258,37 @@ export async function toggleLikeSupabase(postId: string, userId: string): Promis
   }
 }
 
+// Upload a comment attachment file to Supabase Storage 'posts' bucket
+export async function uploadCommentFile(file: File, userId?: string): Promise<{ id: string; url: string; type: string; label: string } | null> {
+  if (!supabase) return null;
+  try {
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-z0-9.\-_/]/gi, '_');
+    const path = `comments/${userId || 'anon'}/${timestamp}_${safeName}`;
+
+    const { error: uploadError } = await (supabase as any).storage.from('posts').upload(path, file, { upsert: true });
+    if (uploadError) {
+      console.warn('uploadCommentFile: upload error', uploadError);
+      return null;
+    }
+
+    const { data } = (supabase as any).storage.from('posts').getPublicUrl(path);
+    const publicUrl = data?.publicUrl || null;
+    
+    if (!publicUrl) return null;
+
+    return {
+      id: `f_${timestamp}`,
+      url: publicUrl,
+      type: file.type.includes('pdf') ? 'pdf' : 'img',
+      label: file.name,
+    };
+  } catch (err) {
+    console.warn('uploadCommentFile failed', err);
+    return null;
+  }
+}
+
 // COMMENTS helpers
 export async function createComment(postId: string, userId: string | null, text: string, attachments?: { id: string; url: string; type?: string; label?: string }[]) {
   // Returns a comment shaped for the UI: { id, text, user: { name, avatar }, createdAt, attachments? }
@@ -286,14 +317,8 @@ export async function createComment(postId: string, userId: string | null, text:
   }
 
   try {
-    // Upload attachments first if any
+    // Attachments are already uploaded at this point, just save their metadata
     let uploadedAttachments = attachments || [];
-    if (attachments && attachments.length > 0) {
-      console.log('Uploading comment attachments:', attachments.length);
-      // For now, we'll pass the blob URLs as-is
-      // In production, you'd upload to Storage and get public URLs
-      uploadedAttachments = attachments;
-    }
 
     const toInsert: any = {
       content: text,
@@ -332,7 +357,7 @@ export async function createComment(postId: string, userId: string | null, text:
       createdAt: row.created_at || new Date().toISOString(),
       user: profile ? { 
         name: profile.username,
-        avatar: profile.avatar || '/src/Assets/defaultuser.png',
+        avatar: profile.avatar || '/assets/defaultuser.png',
       } : (userId ? { id: userId } : undefined),
       attachments: parsedAttachments,
     };
@@ -370,7 +395,7 @@ export async function fetchComments(postId: string) {
       createdAt: r.created_at, 
       user: r.profiles ? { 
         name: r.profiles.username,
-        avatar: r.profiles.avatar || '/src/Assets/defaultuser.png',
+        avatar: r.profiles.avatar || '/assets/defaultuser.png',
       } : undefined,
       attachments: parsedAttachments,
     };
@@ -437,7 +462,7 @@ export async function getPostsByUser(userId: string) {
             name: profile.username,
             major: profile.career,
             semester: profile.term,
-            avatar: profile.avatar || '/src/Assets/defaultuser.png', // use DB avatar or fallback
+            avatar: profile.avatar || '/assets/defaultuser.png', // use DB avatar or fallback
           } : undefined,
           files: r.file_url ? [{ id: `f_${r.id}`, url: r.file_url, type: (r.file_url?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'img') as any, label: String(r.file_url).split('/').pop() }] : [],
           likes: (r.liked_by || []).length,

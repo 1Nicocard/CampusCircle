@@ -9,15 +9,15 @@ import type { AppDispatch } from '../../store/store';
 import { toggleLike as toggleLikeAction } from '../../store/postsSlice';
 
 const tagIcons: Record<string, string> = {
-  Design: "/src/Assets/design.svg",
-  Literature: "/src/Assets/literature.svg",
-  Math: "/src/Assets/math.svg",
-  Science: "/src/Assets/science.svg",
-  Social: "/src/Assets/social.svg",
-  Default: "/src/Assets/Star.png",
+  Design: "/assets/design.svg",
+  Literature: "/assets/literature.svg",
+  Math: "/assets/math.svg",
+  Science: "/assets/science.svg",
+  Social: "/assets/social.svg",
+  Default: "/assets/Star.png",
 };
 
-const iconComment = "/src/Assets/comment.png";
+const iconComment = "/assets/comment.png";
 import icInstitution from "../../Assets/icons/academicicon.svg";
 import icProgram from "../../Assets/icons/programicon.svg";
 import icTerm from "../../Assets/icons/calendaricon.svg";
@@ -45,7 +45,6 @@ export default function Profile() {
         return;
       }
 
-      setLoading(true);
       try {
         const pid = (user as any).id || (user as any)?.userId || null;
         if (!pid) {
@@ -78,8 +77,6 @@ export default function Profile() {
         }
       } catch (err) {
         console.error('Profile load failed', err);
-      } finally {
-        if (mounted) setLoading(false);
       }
     }
 
@@ -143,7 +140,7 @@ export default function Profile() {
       <div className="container pt-40 md:pt-44 pb-4">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <img
-            src={user?.avatar || "/src/Assets/defaultuser.png"}
+            src={user?.avatar || "/assets/defaultuser.png"}
             alt="Profile picture"
             className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-2 border-[#0077FF] mx-auto md:mx-0"
           />
@@ -282,7 +279,7 @@ function MiniPostCard({
     }
   };
 
-  const spark = "/src/Assets/icons/spark.svg";
+  const spark = "/assets/icons/spark.svg";
 
   return (
     <article className="bg-white rounded-2xl border border-[#E6E8EE] shadow-md p-6 sm:p-8">
@@ -310,7 +307,7 @@ function MiniPostCard({
   className="inline-flex items-center gap-2 px-2 sm:px-4 h-[34px] sm:h-[42px] rounded-full border bg-[#F1F4F9] border-[#E6E8EE] text-[14px] sm:text-[16px] lg:text-[18px] transition-transform active:scale-95"
 >
   <img
-    src={liked ? "/src/Assets/like-red.png" : "/src/Assets/like.svg"}
+    src={liked ? "/assets/like-red.png" : "/assets/like.svg"}
     alt="like"
     className="w-5 sm:w-5 lg:w-5 h-5 sm:h-5 lg:h-5"
   />
