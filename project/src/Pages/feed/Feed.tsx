@@ -143,7 +143,7 @@ export default function Feed() {
       <div className="relative w-full">
         <picture>
           <source media="(max-width: 668px)" srcSet="/assets/banner-mobile.png" />
-          <img src="/assets/banner.png" alt="CampusCircle banner" className="w-full h-auto object-cover" />
+          <img src="/assets/Banner.png" alt="CampusCircle banner" className="w-full h-auto object-cover" />
         </picture>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 translate-y-[-60px] sm:translate-y-[-80px] md:translate-y-[-100px]">
           <h1
@@ -279,14 +279,25 @@ export default function Feed() {
                 <p className="mt-6 sm:mt-2 text-[18px] sm:text-[20px] lg:text-[24px] font-sarala text-[#565656] leading-relaxed whitespace-pre-line">{body}</p>
 
                 {/* Archivos */}
-                <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8">
-                  {(files || []).map((file: FileShape, index) => (
-                    <a
+                {files && files.length > 0 && (
+                  <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8">
+                    {files.map((file: FileShape, index) => (
+                    <button
                       key={index}
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-2 py-1 rounded-lg transition-colors hover:text-gray-700"
+                      onClick={() => {
+                        // Check if it's a base64 URL
+                        if (file.url.startsWith('data:')) {
+                          // Create a temporary link and trigger download
+                          const link = document.createElement('a');
+                          link.href = file.url;
+                          link.download = file.label || 'attachment';
+                          link.click();
+                        } else {
+                          // Regular URL - open in new tab
+                          window.open(file.url, '_blank');
+                        }
+                      }}
+                      className="flex items-center gap-2 px-2 py-1 rounded-lg transition-colors hover:text-gray-700 cursor-pointer"
                     >
                       <img
                         src={file.type === "pdf"
@@ -297,9 +308,10 @@ export default function Feed() {
                         className="w-5 h-5"
                       />
                       <span className="font-sarala text-[16px] sm:text-[18px] lg:text-[20px] text-[#565656]">{file.label || String(file.url).split('/').pop()}</span>
-                    </a>
+                    </button>
                   ))}
-                </div>
+                  </div>
+                )}
 
                 {/* Like y Comentarios */}
                 <div className="flex items-center gap-3 mt-6 sm:mt-12">
@@ -575,12 +587,22 @@ export default function Feed() {
                         {Array.isArray(c.attachments) && c.attachments.length > 0 && (
                           <div className="mt-2 flex gap-3 flex-wrap">
                             {c.attachments.map((a: PostFile, ai: number) => (
-                              <a
+                              <button
                                 key={ai}
-                                href={a.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-3 px-4 py-2 bg-white border rounded-lg"
+                                onClick={() => {
+                                  // Check if it's a base64 URL
+                                  if (a.url.startsWith('data:')) {
+                                    // Create a temporary link and trigger download
+                                    const link = document.createElement('a');
+                                    link.href = a.url;
+                                    link.download = a.label || 'attachment';
+                                    link.click();
+                                  } else {
+                                    // Regular URL - open in new tab
+                                    window.open(a.url, '_blank');
+                                  }
+                                }}
+                                className="inline-flex items-center gap-3 px-4 py-2 bg-white border rounded-lg cursor-pointer hover:bg-gray-50"
                               >
                                 <img
                                   src={
@@ -593,7 +615,7 @@ export default function Feed() {
                                 <span className="text-[15px] sm:text-[16px] lg:text-[18px] text-[#565656]">
                                   {a.label || String(a.url).split("/").pop()}
                                 </span>
-                              </a>
+                              </button>
                             ))}
                           </div>
                         )}

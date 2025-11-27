@@ -2,6 +2,16 @@ import { supabase } from "./supabaseClient";
 import { getAllPosts, saveAllPosts, type Post } from "./postStore";
 import { setSessionUser } from "./auth";
 
+// Helper to convert File to base64 data URL
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 /*
   Supabase helpers mapped to your schema:
   - posts: id (uuid), content (text), file_url (text), user_id (uuid), created_at (timestamptz)
@@ -260,23 +270,48 @@ export async function toggleLikeSupabase(postId: string, userId: string): Promis
 
 // Upload a comment attachment file to Supabase Storage 'posts' bucket
 export async function uploadCommentFile(file: File, userId?: string): Promise<{ id: string; url: string; type: string; label: string } | null> {
-  if (!supabase) return null;
+  if (!supabase) {
+    console.error('uploadCommentFile: Supabase client not initialized');
+    return null;
+  }
   try {
+    console.log('uploadCommentFile: Starting upload', { fileName: file.name, fileSize: file.size, userId });
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-z0-9.\-_/]/gi, '_');
     const path = `comments/${userId || 'anon'}/${timestamp}_${safeName}`;
+    console.log('uploadCommentFile: Upload path', path);
 
     const { error: uploadError } = await (supabase as any).storage.from('posts').upload(path, file, { upsert: true });
     if (uploadError) {
-      console.warn('uploadCommentFile: upload error', uploadError);
-      return null;
+      console.error('uploadCommentFile: upload error', uploadError);
+      console.error('uploadCommentFile: error details', { message: uploadError.message, statusCode: uploadError.statusCode });
+      
+      // Fallback to base64 if storage fails
+      console.log('uploadCommentFile: Falling back to base64 encoding');
+      const base64 = await fileToBase64(file);
+      return {
+        id: `f_${timestamp}`,
+        url: base64,
+        type: file.type.includes('pdf') ? 'pdf' : 'img',
+        label: file.name,
+      };
     }
 
     const { data } = (supabase as any).storage.from('posts').getPublicUrl(path);
     const publicUrl = data?.publicUrl || null;
     
-    if (!publicUrl) return null;
+    if (!publicUrl) {
+      console.error('uploadCommentFile: Failed to get public URL, using base64');
+      const base64 = await fileToBase64(file);
+      return {
+        id: `f_${timestamp}`,
+        url: base64,
+        type: file.type.includes('pdf') ? 'pdf' : 'img',
+        label: file.name,
+      };
+    }
 
+    console.log('uploadCommentFile: Upload successful', publicUrl);
     return {
       id: `f_${timestamp}`,
       url: publicUrl,
@@ -284,8 +319,22 @@ export async function uploadCommentFile(file: File, userId?: string): Promise<{ 
       label: file.name,
     };
   } catch (err) {
-    console.warn('uploadCommentFile failed', err);
-    return null;
+    console.error('uploadCommentFile failed with exception', err);
+    // Fallback to base64 on any error
+    try {
+      console.log('uploadCommentFile: Exception fallback to base64');
+      const timestamp = Date.now();
+      const base64 = await fileToBase64(file);
+      return {
+        id: `f_${timestamp}`,
+        url: base64,
+        type: file.type.includes('pdf') ? 'pdf' : 'img',
+        label: file.name,
+      };
+    } catch (e) {
+      console.error('uploadCommentFile: base64 fallback also failed', e);
+      return null;
+    }
   }
 }
 
@@ -483,24 +532,43 @@ export async function getPostsByUser(userId: string) {
 
 // Upload a File to Supabase Storage 'posts' bucket and return the public URL.
 export async function uploadFile(file: File, userId?: string): Promise<string | null> {
-  if (!supabase) return null;
+  if (!supabase) {
+    console.error('uploadFile: Supabase client not initialized');
+    return null;
+  }
   try {
+    console.log('uploadFile: Starting upload', { fileName: file.name, fileSize: file.size, userId });
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-z0-9.\-_/]/gi, '_');
     const path = `${userId || 'anon'}/${timestamp}_${safeName}`;
+    console.log('uploadFile: Upload path', path);
 
     const { error: uploadError } = await (supabase as any).storage.from('posts').upload(path, file, { upsert: true });
     if (uploadError) {
-      console.warn('uploadFile: upload error', uploadError);
-      return null;
+      console.error('uploadFile: upload error', uploadError);
+      console.error('uploadFile: error details', { message: uploadError.message, statusCode: uploadError.statusCode });
+      
+      // Fallback to base64 if storage fails
+      console.log('uploadFile: Falling back to base64 encoding');
+      const base64 = await fileToBase64(file);
+      return base64;
     }
 
     const { data } = (supabase as any).storage.from('posts').getPublicUrl(path);
     const publicUrl = data?.publicUrl || null;
+    console.log('uploadFile: Upload successful', publicUrl);
     return publicUrl;
   } catch (err) {
-    console.warn('uploadFile failed', err);
-    return null;
+    console.error('uploadFile failed with exception', err);
+    // Fallback to base64 on any error
+    try {
+      console.log('uploadFile: Exception fallback to base64');
+      const base64 = await fileToBase64(file);
+      return base64;
+    } catch (e) {
+      console.error('uploadFile: base64 fallback also failed', e);
+      return null;
+    }
   }
 }
 

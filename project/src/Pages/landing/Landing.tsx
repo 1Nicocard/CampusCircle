@@ -25,7 +25,7 @@ export default function Landing() {
 
         <section
           className="relative w-full flex flex-col md:flex-row items-center justify-start bg-cover bg-center pb-32"
-          style={{ backgroundImage: "url('/assets/bannerLanding.png')" }}
+          style={{ backgroundImage: "url('/assets/BannerLanding.png')" }}
         >
           <div className="relative z-10 flex flex-col justify-center items-center md:items-start text-center md:text-left w-full md:w-1/2 px-8 sm:px-12 md:pl-16 lg:pl-40 pt-24 md:pt-36 space-y-10 text-white max-w-full md:max-w-[770px]">
             <h1

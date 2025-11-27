@@ -20,7 +20,7 @@ const Loader: React.FC = () => {
       <div className="relative z-10 flex flex-col items-center justify-center text-center">
         <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
           <img
-            src="/assets/logo gif.gif"
+            src="/assets/Logo gif.gif"
             alt="CampusCircle icon"
             className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 object-contain"
           />
